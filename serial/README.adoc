@@ -1,8 +1,23 @@
 = UART Serial Peripheral
 
-This module is a basic wishbone UART serial transmitter/receiver, with a built-in first-in first-out buffer.
+This module is a basic Wishbone (B4, pipelined) UART serial transmitter/receiver, with a built-in first-in first-out buffer.
 
 == Specification
+
+Initially, should have fixed support for 8-bit 1-stop-bit no-parity transmission and reception at 115200 bits per second. The following interface is specified:
+
+* `clk_i`: the clock for the interface
+* `rst_i`: the active high synchronous reset
+* `cyc_i`: set high whenever a transaction is taking place
+* `stb_i`: indicates the start of a wishbone transaction
+* `we_i`: set to push data to the FIFO for sending over UART
+* `dat_i`: data to be sent over UART
+* `dat_o`: data received over UART
+* `ack_o`: set on last cycle of normal bus cycle
+* `stall_o`: means that the transmit-FIFO is full
+* `err_o`: on a read, indicates the receive-FIFO is empty
+
+The component also has a (non-wishbone) signal `interrup` which is set whenever there is unread data in the receive-FIFO.
 
 == Design
 
