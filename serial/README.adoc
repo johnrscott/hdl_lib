@@ -1,0 +1,9 @@
+= UART Serial Peripheral
+
+This module is a basic wishbone UART serial transmitter/receiver, with a built-in first-in first-out buffer.
+
+== Specification
+
+== Design
+
+== Testing

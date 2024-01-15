@@ -1,0 +1,3 @@
+= HDL-LIB
+
+A small library of Verilog Modules for FPGA Designs. Intended to including things like communication peripherals (UART/SPI), interconnects, etc. Each folder contains an individual components, which includes the specification/design, the HDL, and the testing/verification.
