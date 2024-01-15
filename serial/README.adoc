@@ -21,4 +21,32 @@ The component also has a (non-wishbone) signal `interrup` which is set whenever 
 
 == Design
 
+The lowest level components in the design are the character transmitter and receiver, of which the transmitter is simplest. It has the following interface:
+
+[,verilog]
+----
+/// UART Character Transmitter
+///
+/// Uses synchronous reset rst, which resets internal
+/// state and aborts current transmission (setting tx
+/// to 1).
+///
+/// The busy signal is asserted on any clock cycle
+/// where a UART transmission is in progress. This lasts
+/// from the first clock cycle where the start bit is
+/// asserted to the last clock cycle before the stop
+/// bit ends.
+///
+/// If busy is low, then setting send will latch data 
+/// into the transmitter and being sending it. Neither
+/// send nor data need remain high/valid for more than
+/// one clock cycle.
+///
+module uart_tx(
+       input logic clk, rst, send,
+       input logic [7:0] data,
+       output logic busy, tx
+);
+----
+
 == Testing
