@@ -20,7 +20,8 @@ module uart_tx(
    assign shift = (baud_counter == (CLOCKS_PER_BAUD - 1));
 
    // Assert transmission done on the rising clock edge beginning
-   // the last baud tick of the final bit.
+   // the last baud tick of the final bit. Note: adding 2 to the
+   // BITS_PER_TRANSFER for start/stop bit.
    assign tx_done = shift && (bit_counter == (BITS_PER_TRANSFER + 1));
 
    // Load is the same ass requesting a send while a transmission
@@ -37,7 +38,7 @@ module uart_tx(
 	busy <= 0;
       else if (load)
 	busy <= 1;
-      else if (busy && tx_done)
+      else if (tx_done)
 	busy <= 0;
    end
    
