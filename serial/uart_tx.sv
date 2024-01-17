@@ -4,8 +4,9 @@ module uart_tx(
    output logic	     busy, tx
 );
 
-   parameter CLOCK_RATE_HZ = 100_000_000;
-   parameter BAUD_RATE_HZ = 10_000_000;// 115_200;
+   parameter CLOCK_RATE_HZ = 3;
+   parameter BITS_PER_TRANSFER = 8;
+   parameter BAUD_RATE_HZ = 1;// 115_200;
    parameter CLOCKS_PER_BAUD = CLOCK_RATE_HZ / BAUD_RATE_HZ;
 
    logic [31:0]	baud_counter = 0;
@@ -16,11 +17,11 @@ module uart_tx(
 
    // Assert shift on the rising clock edge beginning the last baud
    // tick
-   assign shift = (baud_counter == (CLOCKS_PER_BAUD - 2));
+   assign shift = (baud_counter == (CLOCKS_PER_BAUD - 1));
 
    // Assert transmission done on the rising clock edge beginning
    // the last baud tick of the final bit.
-   assign tx_done = shift && (bit_counter == 8);
+   assign tx_done = shift && (bit_counter == (BITS_PER_TRANSFER + 1));
 
    // Load is the same ass requesting a send while a transmission
    // is not in progress. Load will immediately be deasserted,

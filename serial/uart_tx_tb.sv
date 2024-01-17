@@ -13,6 +13,15 @@ module uart_tx_tb;
       #1 clk = 0;
    end
 
+   initial begin
+      wait (busy == 1);
+      wait (busy == 0);
+
+      #10;
+
+      $finish;
+   end
+   
    /*
    default clocking cb @(posedge clk);
       default input #2 output #1;
@@ -22,7 +31,7 @@ module uart_tx_tb;
     */
    initial begin
 
-      $dumpfile("test.vcd");
+      $dumpfile("build/wave.vcd");
       $dumpvars;
 
       send = 0;
@@ -34,16 +43,14 @@ module uart_tx_tb;
 
       #2;
 
-      data = "H";
+      data = "U";
 
       #4;
       send = 1;
       #2;
       send = 0;
 
-      #50;
-      
-      $finish;
+   end // initial begin
 
-   end
+   
 endmodule
