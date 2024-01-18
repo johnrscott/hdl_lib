@@ -3,3 +3,4 @@
 
 # Simulation/verification outputs
 build/
+obj_dir/
