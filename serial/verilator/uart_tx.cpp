@@ -4,18 +4,31 @@
 #include <verilated_vcd_c.h>
 
 namespace util {
-
+    
+    /// Based on top module Top, which needs a
+    /// ->clk() method to abstract whatever signal
+    /// is being used as the clock.
+    template <Top> 
     class clock {
     public:
 
 	/// Make a new clock object associated
-	/// to a top model and optionally a trace
-	/// object.
-	clock(Vuart_tx *tb,
-	      VerilatedVcdC *tfp)
-	    : tb_{tb}, tfp_{tfp} {}
+	/// to a top model
+	clock(Top *tb) : tb_{tb} {
+	    Verilated::traceEverOn(true);
+	    *tfp_ = new VerilatedVcdC{};
 
-    
+	    // Trace output
+	    tb_->trace(tfp_, 99);
+	    tfp_->open("build/vl_uart_tx.vcd");
+	}
+
+	~clock() {
+	    if (tfp_) {
+		delete tfp_;
+	    }
+	}
+	
 	/// Advance the clock by a single tick
 	///
 	/// Calling this function does three things:
@@ -52,7 +65,7 @@ namespace util {
 
 	    // Now set clock falling edge + eval + write
 	    // falling edge to trace
-	    tb_->clk = 0;
+	    tb_->clk() = 0;
 	    tb_->eval();
 	    if (tfp_) {
 		tfp_->dump(10*tick_ + 5);
@@ -62,7 +75,7 @@ namespace util {
 	    // posedge update. Write all signals to trace at
 	    // same time (acts like logic has zero propagation
 	    // delay).
-	    tb_->clk = 1;
+	    tb_->clk() = 1;
 	    tb_->eval();
 	    if (tfp_) {
 		tfp_->dump(10*tick_ + 10);
@@ -72,26 +85,36 @@ namespace util {
 	    tick_++;
 	}
     private:
-	Vuart_tx *tb_;
-	VerilatedVcdC *tfp_;
+	Top *tb_{nullptr};
+	VerilatedVcdC *tfp_{nullptr};
 	unsigned tick_{0};
 	unsigned hold_{1};
     };
+
+    class uart_tx  {
+    public:
+	uart_tx() : tb_{new Vuart_tx{}}, clock_{this} {}
+	~uart_tx() {
+	    if (tb_) {
+		delete tb_;
+	    }
+	}
+
+	int* clk() {
+	    return tb_.
+	}
+	
+    private:
+	Vuart_tx *tb_{nullptr};
+	clock clock_;	
+    };
+
 }
 
 int main(int argc , char **argv) {
 
-
     Verilated::commandArgs(argc, argv);
     Vuart_tx *tb{new Vuart_tx{}};
-
-    // Trace output
-    Verilated::traceEverOn(true);
-    VerilatedVcdC *tfp{new VerilatedVcdC{}};
-    tb->trace(tfp, 99);
-    tfp->open("build/vl_uart_tx.vcd");
-
-    util::clock clk{tb, tfp};
 
     // Perform two writes
     for (int cycle = 0; cycle < 2; cycle++) {
