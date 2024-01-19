@@ -15,6 +15,8 @@ VERILATOR_INC=/usr/share/verilator/include/
 IFLAGS=-Iobj_dir/ -I$(VERILATOR_INC)
 TOP=uart_tx
 
+CLOCKS_PER_BIT=5
+
 # Display iverilog waves
 .PHONY: iv_wave
 iv_wave: run
@@ -26,12 +28,14 @@ vl_wave: build/$(TOP).bin
 	./$^
 	gtkwave build/vl_$(TOP).vcd
 
-
 build/$(TOP).bin: verilator/*.cpp obj_dir/V$(TOP)__ALL.a
-	g++ -O2 $^ $(VERILATOR_INC)/verilated.cpp $(VERILATOR_INC)/verilated_vcd_c.cpp $(IFLAGS) -o $@
+	g++ -O2 $^ $(VERILATOR_INC)/verilated.cpp \
+		-DCLOCKS_PER_BIT=$(CLOCKS_PER_BIT) \
+		$(VERILATOR_INC)/verilated_vcd_c.cpp $(IFLAGS) -o $@
 
 obj_dir/V$(TOP)__ALL.a: src/*.sv
-	verilator -Wall -cc --trace --top-module $(TOP) $^
+	verilator -Wall -cc --trace --top-module $(TOP) \
+		-GCLOCKS_PER_BIT=$(CLOCKS_PER_BIT) $^
 	make -C obj_dir -f V$(TOP).mk
 
 

@@ -5,8 +5,12 @@ module uart_tx_tb;
 
    logic	     clk, rst, send, busy, tx;
    logic [7:0]	     data;
+
+   parameter	     CLOCK_RATE = 10;
+   parameter	     BAUD_RATE = 1;
+   parameter	     CLOCKS_PER_BIT = CLOCK_RATE/BAUD_RATE;
    
-   uart_tx dut(.*);
+   uart_tx #(.CLOCKS_PER_BIT(CLOCKS_PER_BIT)) dut(.*);
    
    always begin
       #1 clk = 1;

@@ -1,129 +1,169 @@
 #include <iostream>
-#include "Vuart_tx.h"
-#include <verilated.h>
-#include <verilated_vcd_c.h>
+#include <string>
 
-/// Based on top module Top, which needs a
-/// ->clk() method to abstract whatever signal
-/// is being used as the clock.
-class uart_tx {
+#include "Vuart_tx.h"
+#include "top.hpp"
+
+template<typename Mod>
+class Top {
+public:
+    /// Access module ports through this member
+    Mod *mod{nullptr};
+
+    Top() : mod{new Mod{}} {}
+    ~Top() {
+	if (mod) {
+	    delete mod;
+	}
+    }
+    
+};
+
+class UartTx: public Top<Vuart_tx> {
 public:
 
-    /// Wrap the module port to use as the clock
+    /// Implement this virtual function to
+    /// pick which port is the clock for tick()
     void set_clock(int value) {
-	tb_->clk = value;
+	mod->clk = value;
     }
 
-    /// Provide access to all module ports
-    Vuart_tx* operator->() {
-	return tb_;
-    }
-       	
-    /// Make a new clock object associated
-    /// to a top model
-    uart_tx() : tb_{new Vuart_tx{}} {
-	Verilated::traceEverOn(true);
-	tfp_ = new VerilatedVcdC{};
+    UartTx() {}
+};
 
-	// Trace output
-	tb_->trace(tfp_, 99);
-	tfp_->open("build/vl_uart_tx.vcd");
-    }
+/// Read the ports and check the state
+class UartRxSim {
+public:
 
-    ~uart_tx() {
-	if (tfp_) {
-	    delete tfp_;
-	}
+    enum class State {
+	IDLE,
+	START,
+	RECEIVING,
+	STOP
+    };
+    
+    UartRxSim(UartTx &uart_tx)
+	: dut_{uart_tx}, clock_{uart_tx, "build/vl_uart_tx.vcd"} {}
 
-	if (tb_) {
-	    delete tb_;
-	}
+    std::string rx_string() const {
+	return rx_string_;
     }
-	
-    /// Advance the clock by a single tick
-    ///
-    /// Calling this function does three things:
-    ///
-    /// 1. Evaluates the model based on inputs that
-    /// have been set since last calling tick(). These
-    /// are assumed to be driven from the same clocking
-    /// domain as this clock, so they should change just
-    /// after the last rising edge of the clock. The
-    /// delay is the hold time. Write to the trace file.
-    ///
-    /// 2. After half a clock period, set the falling
-    /// edge of the clock and write to the trace file.
-    ///
-    /// 3. After another half clock period, set the rising
-    /// edge of the clock, and evaluate. Write the results
-    /// to the trace file. Since both the rising clock edge
-    /// and all dependent logic are evaluated at the same
-    /// time (and written to the trace file under the same
-    /// timestamp), this models the logic as having zero
-    /// propagation delay.
-    ///
+    
+    /// Update the clock and refresh the simulation
     void tick() {
+	clock_.tick();
 
-	// Assume the user set inputs outside. Evaluate
-	// the model based on these inputs, and write the
-	// results to the trace file a hold time after the
-	// previous rising clock edge (at the end of this
-	// tick function).
-	tb_->eval();
-	if (tfp_) {
-	    tfp_->dump(10*tick_ + hold_);
-	}	    
-
-	// Now set clock falling edge + eval + write
-	// falling edge to trace
-	set_clock(0);
-	tb_->eval();
-	if (tfp_) {
-	    tfp_->dump(10*tick_ + 5);
-	}	    
-
-	// Rising edge + eval. All signals depending on
-	// posedge update. Write all signals to trace at
-	// same time (acts like logic has zero propagation
-	// delay).
-	set_clock(1);
-	tb_->eval();
-	if (tfp_) {
-	    tfp_->dump(10*tick_ + 10);
-	    tfp_->flush();
+	std::cout << "Starting tick" << clock_.tick_count() << std::endl;
+	
+	// Now read the outputs
+	switch (state_) {
+	case State::IDLE:
+	    if (dut_.mod->tx == 0) {
+		reference_tick_ = clock_.tick_count();
+		state_ = State::START;
+		std::cout << "Detected possible start bit" << std::endl;
+	    }
+	    break;
+	case State::START:
+	    if (dut_.mod->tx == 1) {
+		std::cout << "Aborted start bit" << std::endl;
+		state_ = State::IDLE;
+	    }
+	    if (clock_.tick_count() == reference_tick_ + CLOCKS_PER_BIT/2) {
+		std::cout << "Confirmed start bit" << std::endl;
+		rx_data_ = 0;
+		reference_tick_ = clock_.tick_count();
+		bit_count_ = 0;
+		state_ = State::RECEIVING;
+	    }
+	    break;
+	case State::RECEIVING:
+	    if (clock_.tick_count() == reference_tick_ + CLOCKS_PER_BIT) {
+		reference_tick_ = clock_.tick_count();
+		unsigned bit{dut_.mod->tx};
+                rx_data_ |= (bit << bit_count_);
+		std::cout << "Sampling tx data, got " << bit << std::endl;
+		if (++bit_count_ == 8) {
+		    std::cout << "Finished final bit. Going to stop bit."
+			      << std::endl;
+		    state_ = State::STOP;
+		}
+	    }
+	    break;
+	case State::STOP:
+	    if (clock_.tick_count() == reference_tick_ + CLOCKS_PER_BIT) {
+		unsigned bit{dut_.mod->tx};
+		if (bit != 1) {
+		    std::cout << "Error, stop bit has wrong value" << std::endl;
+		} else {
+		    std::cout << "Got correct stop bit" << std::endl;
+		    std::cout << "Received character was: " << (char)rx_data_
+			      << std::endl;
+		    rx_string_.push_back((char)rx_data_);
+		}
+		state_ = State::IDLE;
+	    }
+	    break;
 	}
-
-	tick_++;
     }
+	  
 private:
-    Vuart_tx *tb_{nullptr};
-    VerilatedVcdC *tfp_{nullptr};
-    unsigned tick_{0};
-    unsigned hold_{1};
+    UartTx &dut_;
+    Clock<UartTx> clock_;
+    unsigned reference_tick_;
+    unsigned bit_count_;
+    uint8_t rx_data_;
+    std::string rx_string_;
+    State state_;
 };
 
 int main(int argc , char **argv) {
 
     Verilated::commandArgs(argc, argv);
 
-    uart_tx dut{};
-    
-    // Perform two writes
-    for (int cycle = 0; cycle < 2; cycle++) {
+    UartTx dut{};
+    UartRxSim sim{dut};
 
-	// Delay 5 cycles
-	for (int k = 0; k < 10; k++) {
-	    dut.tick();
-	}
+    std::string message = "Hello, World!";
 
-	// Something
-    }    
-
-    // Delay 100 cycles
-    for (int k = 0; k < 100; k++) {
-	dut.tick();
+    // Start up simulation
+    for (int n = 0; n < 10; n++) {
+	sim.tick();
     }
     
+    // Write each character in turn
+    for (char ch : message) {
+
+	// Trigger a transmission
+	dut.mod->data = ch;
+        dut.mod->send = 1;
+       
+	// Wait for transmission to start
+	while (dut.mod->busy == 0) {
+	    sim.tick();
+	}	
+
+	// Deassert send signal
+	dut.mod->send = 0;
+	
+	// Wait for transmission to end
+	while (dut.mod->busy == 1) {
+	    sim.tick();
+	}
+	
+    }
     
-    
+    // Delay 100 cycles
+    for (int k = 0; k < 100; k++) {
+	sim.tick();
+    }
+
+    // Print final string
+    std::cout << "Received string: " << sim.rx_string() << std::endl;
+
+    if (sim.rx_string() == message) {
+	std::cout << "TEST PASSED" << std::endl;
+    } else {
+	std::cout << "TEST FAILED" << std::endl;
+    }
 }

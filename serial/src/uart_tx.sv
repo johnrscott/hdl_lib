@@ -1,13 +1,15 @@
-module uart_tx(
-   input logic	     clk, rst, send,
-   input logic [7:0] data,
-   output logic	     busy, tx
+module uart_tx #(
+   // How many clock ticks make up one bit (divide
+   // clk rate by baud rate). Default gives a baud
+   // rate of 115200 at a clock rate of 100 MHz
+   parameter CLOCKS_PER_BIT = 868,
+   // How many bits of data are in the UART data frame.
+   parameter DATA_BITS = 8
+)(
+   input logic		       clk, rst, send,
+   input logic [DATA_BITS-1:0] data,
+   output logic		       busy, tx
 );
-
-   parameter CLOCK_RATE_HZ = 3;
-   parameter BITS_PER_TRANSFER = 8;
-   parameter BAUD_RATE_HZ = 1;// 115_200;
-   parameter CLOCKS_PER_BAUD = CLOCK_RATE_HZ / BAUD_RATE_HZ;
 
    logic [31:0]	baud_counter = 0;
    logic [3:0] bit_counter = 0; 
@@ -17,12 +19,12 @@ module uart_tx(
 
    // Assert shift on the rising clock edge beginning the last baud
    // tick
-   assign shift = (baud_counter == (CLOCKS_PER_BAUD - 1));
+   assign shift = (baud_counter == (CLOCKS_PER_BIT - 1));
 
    // Assert transmission done on the rising clock edge beginning
    // the last baud tick of the final bit. Note: adding 2 to the
-   // BITS_PER_TRANSFER for start/stop bit.
-   assign tx_done = shift && (bit_counter == (BITS_PER_TRANSFER + 1));
+   // DATA_BITS for start/stop bit.
+   assign tx_done = shift && (bit_counter == (DATA_BITS + 1));
 
    // Load is the same ass requesting a send while a transmission
    // is not in progress. Load will immediately be deasserted,
