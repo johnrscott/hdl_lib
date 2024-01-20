@@ -1,21 +1,21 @@
+`default_nettype none
+
 module hello_world(
    input logic clk, rst, trigger,
-   output tx, busy
+   output logic tx, sending
 );
 
    parameter CLOCK_RATE = 100_000_000;
    parameter BAUD_RATE = 115_200;
    parameter CLOCKS_PER_BIT = CLOCK_RATE / BAUD_RATE;
 
-   logic [7:0] message[] = '{ "H","e","l","l","o",","," ",
-			   "W","o","r","l","d","!"};
-
-   logic       sending;
    
-   logic       send;
+   logic [7:0] message[2] = '{ default: 0 };
+
+   logic       send, busy;
    logic [7:0] data;
 
-   logic       char_counter = 0;
+   logic char_counter = 0;
    assign data = message[char_counter];
 
    assign send = sending && !busy;
@@ -34,7 +34,7 @@ module hello_world(
 	if (char_counter == 10)
 	  char_counter <= 0;
 	else
-	    char_counter <= char_counter + 1;
+	  char_counter <= char_counter + 1;
    end
    
    

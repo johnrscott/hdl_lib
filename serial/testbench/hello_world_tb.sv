@@ -3,9 +3,9 @@ module hello_world_tb;
    timeunit 1ns;
    timeprecision 10ps;
 
-   logic	     clk, rst, trigger, busy, tx;
+   logic	     clk, rst, trigger, sending, tx;
    logic [7:0]	     data;
-
+   
    parameter	     CLOCK_RATE = 10;
    parameter	     BAUD_RATE = 1;
    parameter	     CLOCKS_PER_BIT = CLOCK_RATE/BAUD_RATE;
@@ -16,13 +16,13 @@ module hello_world_tb;
       #1 clk = 1;
       #1 clk = 0;
    end
-
+   
    initial begin
-      wait (busy == 1);
-      wait (busy == 0);
-
+      wait (sending == 1);
+      wait (sending == 0);
+      
       #10;
-
+      
       $finish;
    end
    
@@ -48,7 +48,7 @@ module hello_world_tb;
       #4;
       trigger = 1;
       #2;
-      send = 0;
+      trigger = 0;
 
    end // initial begin
 
