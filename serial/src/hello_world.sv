@@ -36,7 +36,7 @@ module hello_world(
    logic [3:0] char_counter = 0;
    assign data = message[char_counter];
    
-   uart_tx #(.CLOCKS_PER_BIT(CLOCKS_PER_BIT)) uart_tx(
+   uart_tx uart_tx(
       .clk, .rst, .send, .data, .busy(char_busy), .tx);
 
    always_ff @(posedge clk) begin: update_state

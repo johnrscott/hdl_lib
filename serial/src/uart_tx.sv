@@ -10,8 +10,8 @@ module uart_tx #(
    input logic [DATA_BITS-1:0] data,
    output logic		       busy, tx
 );
-
-   logic [31:0]	baud_counter = 0;
+/*
+   logic [1:0]	baud_counter = 0;
    logic [3:0] bit_counter = 0; 
 
    logic	load, shift, tx_done;
@@ -19,7 +19,7 @@ module uart_tx #(
 
    // Assert shift on the rising clock edge beginning the last baud
    // tick
-   assign shift = (baud_counter == (CLOCKS_PER_BIT - 1));
+   assign shift = (baud_counter == 10);
 
    // Assert transmission done on the rising clock edge beginning
    // the last baud tick of the final bit. Note: adding 2 to the
@@ -43,7 +43,7 @@ module uart_tx #(
       else if (tx_done)
 	busy <= 0;
    end
-   
+
    // Increment bit counter if in the DATA state, or reset
    always_ff @(posedge clk) begin: increment_bit_count
       if (rst || !busy)
@@ -57,7 +57,7 @@ module uart_tx #(
       if (rst || !busy || shift)
 	baud_counter <= 0;
       else
-	baud_counter <= baud_counter + 1;
+	baud_counter <= baud_counter + 1'b1;
    end
-	       
+	   */    
 endmodule
