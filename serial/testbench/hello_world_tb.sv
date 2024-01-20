@@ -21,11 +21,11 @@ module hello_world_tb;
       wait (sending == 1);
       wait (sending == 0);
       
-      #10;
+      #100;
       
       $finish;
    end
-   
+
    /*
    default clocking cb @(posedge clk);
       default input #2 output #1;
@@ -35,13 +35,13 @@ module hello_world_tb;
     */
    initial begin
 
-      $dumpfile("build/hello_world_wave.vcd");
+      $dumpfile("build/hello_world_tb_wave.vcd");
       $dumpvars;
 
       trigger = 0;
       rst = 1;
 
-      #2;
+      #4;
 
       rst = 0;
 
