@@ -13,7 +13,7 @@
 /// Note this has the effect of asserting the start bit (tx drops
 /// to zero).
 ///
-/// If both load and shift are asseerted, shift is ignored and data
+/// If both load and shift are asserted, shift is ignored and data
 /// is loaded.
 module tx_shift_reg(
    input logic clk, rst, load, shift,

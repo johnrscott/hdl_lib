@@ -3,7 +3,7 @@ module hello_world_tb;
    timeunit 1ns;
    timeprecision 10ps;
 
-   logic	     clk, rst, trigger, sending, tx;
+   logic	     clk, rst, trigger, busy, tx;
    logic [7:0]	     data;
    
    parameter	     CLOCK_RATE = 10;
@@ -18,8 +18,8 @@ module hello_world_tb;
    end
    
    initial begin
-      wait (sending == 1);
-      wait (sending == 0);
+      wait (busy == 1);
+      wait (busy == 0);
       
       #100;
       
