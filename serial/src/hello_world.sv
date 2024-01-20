@@ -15,7 +15,7 @@ module hello_world(
    logic       send;
    logic [7:0] data;
 
-   logic       char_counter = o;
+   logic       char_counter = 0;
    assign data = message[char_counter];
 
    assign send = sending && !busy;
