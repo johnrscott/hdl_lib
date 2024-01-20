@@ -5,8 +5,8 @@ module hello_world(
    output logic tx, busy
 );
 
-   parameter CLOCK_RATE = 5;//100_000_000;
-   parameter BAUD_RATE = 1;//115_200;
+   parameter CLOCK_RATE = 100_000_000;
+   parameter BAUD_RATE = 115_200;
    parameter CLOCKS_PER_BIT = CLOCK_RATE / BAUD_RATE;
 
    
@@ -28,7 +28,7 @@ module hello_world(
       message[12] = "!";
    end
 
-   enum logic [2:0] { IDLE, LOAD, SEND, CHECK_FINISHED } state;
+   enum logic [2:0] { IDLE, LOAD, SEND } state;
    
    logic       send, char_busy;
    logic [7:0] data;
@@ -40,8 +40,11 @@ module hello_world(
       .clk, .rst, .send, .data, .busy(char_busy), .tx);
 
    always_ff @(posedge clk) begin: update_state
-      if (rst)
-	state <= IDLE;
+      if (rst) begin
+	 state <= IDLE;
+	 send <= 0;
+	 char_counter <= 0;
+      end
       else
 	case (state)
 	  IDLE: if (trigger && !busy) begin
@@ -59,15 +62,19 @@ module hello_world(
 	  SEND: begin
 	     send <= 0;
 	     if (!send && !char_busy) begin
-		char_counter <= char_counter + 1;
-		state <= CHECK_FINISHED;
-	     end
+		if (char_counter == 12) begin
+		   char_counter <= 0;
+		   busy <= 0;
+		   state <= IDLE;
+		end
+		else begin
+		   char_counter <= char_counter + 1;
+		   state <= LOAD;
+		end
+	     end // if (!send && !char_busy)
 	  end
-	  CHECK_FINISHED: if (char_counter == 13)
-	    state <= IDLE;
-	  else
-	    state <= LOAD;
-	endcase	
+	
+endcase	
    end
    
 endmodule

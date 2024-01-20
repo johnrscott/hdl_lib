@@ -1,22 +1,21 @@
 module hello_world_tb;
 
    timeunit 1ns;
-   timeprecision 10ps;
+   timeprecision 100ps;
 
    logic	     clk, rst, trigger, busy, tx;
-   logic [7:0]	     data;
    
-   parameter	     CLOCK_RATE = 10;
-   parameter	     BAUD_RATE = 1;
+   parameter	     CLOCK_RATE = 100_000_000;
+   parameter	     BAUD_RATE = 115_200;
    parameter	     CLOCKS_PER_BIT = CLOCK_RATE/BAUD_RATE;
    
    hello_world dut(.*);
    
    always begin
-      #1 clk = 1;
-      #1 clk = 0;
+      #5 clk = 1;
+      #5 clk = 0;
    end
-   
+   /*
    initial begin
       wait (busy == 1);
       wait (busy == 0);
@@ -25,7 +24,7 @@ module hello_world_tb;
       
       $finish;
    end
-
+    */
    /*
    default clocking cb @(posedge clk);
       default input #2 output #1;
@@ -41,14 +40,22 @@ module hello_world_tb;
       trigger = 0;
       rst = 1;
 
-      #4;
+      #40;
 
       rst = 0;
 
-      #4;
+      #40;
       trigger = 1;
-      #2;
+      #20;
       trigger = 0;
+
+      #50;
+      wait (busy == 0);
+
+      #40;
+      trigger = 1;
+      #20;
+      trigger = 0; 
 
    end // initial begin
 

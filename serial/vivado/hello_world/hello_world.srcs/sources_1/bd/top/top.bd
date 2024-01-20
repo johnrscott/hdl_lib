@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x29A008486687ECA",
+      "boundary_crc": "0x6839AD2D9A3CC3C6",
       "device": "xc7a35ticsg324-1L",
       "gen_directory": "../../../../hello_world.gen/sources_1/bd/top",
       "name": "top",
@@ -74,6 +74,16 @@
         }
       },
       "busy": {
+        "type": "data",
+        "direction": "O",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "tx_debug": {
         "type": "data",
         "direction": "O",
         "parameters": {
@@ -181,7 +191,8 @@
       "hello_world_wrapper_0_tx": {
         "ports": [
           "hello_world_wrapper_0/tx",
-          "tx"
+          "tx",
+          "tx_debug"
         ]
       },
       "rst_1": {
