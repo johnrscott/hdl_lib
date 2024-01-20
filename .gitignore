@@ -4,3 +4,18 @@
 # Simulation/verification outputs
 build/
 obj_dir/
+
+# Vivado files
+*.jou
+*.log
+*.cache
+*.gen
+*.hw
+*.ioplanning
+*.ip_user_files
+*.sim
+*.runs
+*.str
+.Xil
+*.tmp
+*.out
