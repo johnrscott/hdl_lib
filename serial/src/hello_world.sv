@@ -1,4 +1,4 @@
-`default_nettype none
+//`default_nettype none
 
 module hello_world(
    input logic clk, rst, trigger,
@@ -41,7 +41,7 @@ module hello_world(
 
    always_ff @(posedge clk) begin: update_state
       if (rst)
-	state <= 0;
+	state <= IDLE;
       else
 	case (state)
 	  IDLE: if (trigger && !busy) begin

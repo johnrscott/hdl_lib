@@ -1,0 +1,201 @@
+{
+  "design": {
+    "design_info": {
+      "boundary_crc": "0x29A008486687ECA",
+      "device": "xc7a35ticsg324-1L",
+      "gen_directory": "../../../../hello_world.gen/sources_1/bd/top",
+      "name": "top",
+      "rev_ctrl_bd_flag": "RevCtrlBdOff",
+      "synth_flow_mode": "Hierarchical",
+      "tool_version": "2023.2",
+      "validated": "true"
+    },
+    "design_tree": {
+      "hello_world_wrapper_0": "",
+      "clk_wiz_0": ""
+    },
+    "ports": {
+      "clk": {
+        "type": "clk",
+        "direction": "I",
+        "parameters": {
+          "CLK_DOMAIN": {
+            "value": "top_clk",
+            "value_src": "default"
+          },
+          "FREQ_HZ": {
+            "value": "100000000"
+          },
+          "FREQ_TOLERANCE_HZ": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "PHASE": {
+            "value": "0.0",
+            "value_src": "default"
+          }
+        }
+      },
+      "rst": {
+        "type": "rst",
+        "direction": "I",
+        "parameters": {
+          "INSERT_VIP": {
+            "value": "0",
+            "value_src": "default"
+          },
+          "POLARITY": {
+            "value": "ACTIVE_HIGH"
+          }
+        }
+      },
+      "trigger": {
+        "type": "data",
+        "direction": "I",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "tx": {
+        "type": "data",
+        "direction": "O",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      },
+      "busy": {
+        "type": "data",
+        "direction": "O",
+        "parameters": {
+          "LAYERED_METADATA": {
+            "value": "undef",
+            "value_src": "default"
+          }
+        }
+      }
+    },
+    "components": {
+      "hello_world_wrapper_0": {
+        "vlnv": "xilinx.com:module_ref:hello_world_wrapper:1.0",
+        "ip_revision": "1",
+        "xci_name": "top_hello_world_wrapper_0_0",
+        "xci_path": "ip/top_hello_world_wrapper_0_0/top_hello_world_wrapper_0_0.xci",
+        "inst_hier_path": "hello_world_wrapper_0",
+        "reference_info": {
+          "ref_type": "hdl",
+          "ref_name": "hello_world_wrapper",
+          "boundary_crc": "0x0"
+        },
+        "ports": {
+          "clk": {
+            "type": "clk",
+            "direction": "I",
+            "parameters": {
+              "ASSOCIATED_RESET": {
+                "value": "rst",
+                "value_src": "constant"
+              },
+              "FREQ_HZ": {
+                "value": "100000000",
+                "value_src": "ip_prop"
+              },
+              "PHASE": {
+                "value": "0.0",
+                "value_src": "ip_prop"
+              },
+              "CLK_DOMAIN": {
+                "value": "/clk_wiz_0_clk_out1",
+                "value_src": "ip_prop"
+              }
+            }
+          },
+          "rst": {
+            "type": "rst",
+            "direction": "I",
+            "parameters": {
+              "POLARITY": {
+                "value": "ACTIVE_HIGH",
+                "value_src": "user_prop"
+              }
+            }
+          },
+          "trigger": {
+            "direction": "I",
+            "parameters": {
+              "LAYERED_METADATA": {
+                "value": "undef",
+                "value_src": "default_prop"
+              }
+            }
+          },
+          "tx": {
+            "direction": "O"
+          },
+          "busy": {
+            "direction": "O"
+          }
+        }
+      },
+      "clk_wiz_0": {
+        "vlnv": "xilinx.com:ip:clk_wiz:6.0",
+        "ip_revision": "13",
+        "xci_name": "top_clk_wiz_0_0",
+        "xci_path": "ip/top_clk_wiz_0_0/top_clk_wiz_0_0.xci",
+        "inst_hier_path": "clk_wiz_0",
+        "parameters": {
+          "USE_RESET": {
+            "value": "false"
+          }
+        }
+      }
+    },
+    "nets": {
+      "clk_1": {
+        "ports": [
+          "clk",
+          "clk_wiz_0/clk_in1"
+        ]
+      },
+      "clk_wiz_0_clk_out1": {
+        "ports": [
+          "clk_wiz_0/clk_out1",
+          "hello_world_wrapper_0/clk"
+        ]
+      },
+      "hello_world_wrapper_0_busy": {
+        "ports": [
+          "hello_world_wrapper_0/busy",
+          "busy"
+        ]
+      },
+      "hello_world_wrapper_0_tx": {
+        "ports": [
+          "hello_world_wrapper_0/tx",
+          "tx"
+        ]
+      },
+      "rst_1": {
+        "ports": [
+          "rst",
+          "hello_world_wrapper_0/rst"
+        ]
+      },
+      "trigger_1": {
+        "ports": [
+          "trigger",
+          "hello_world_wrapper_0/trigger"
+        ]
+      }
+    }
+  }
+}
