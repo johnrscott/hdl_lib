@@ -10,7 +10,8 @@ module uart_tx #(
    input logic [DATA_BITS-1:0] data,
    output logic		       busy, tx
 );
-/*
+
+
    logic [1:0]	baud_counter = 0;
    logic [3:0] bit_counter = 0; 
 
@@ -59,5 +60,5 @@ module uart_tx #(
       else
 	baud_counter <= baud_counter + 1'b1;
    end
-	   */    
+  
 endmodule

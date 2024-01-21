@@ -1,7 +1,7 @@
 {
   "design": {
     "design_info": {
-      "boundary_crc": "0x6839AD2D9A3CC3C6",
+      "boundary_crc": "0x6839AD2D113C5FAF",
       "device": "xc7a35ticsg324-1L",
       "gen_directory": "../../../../hello_world.gen/sources_1/bd/top",
       "name": "top",
@@ -11,8 +11,8 @@
       "validated": "true"
     },
     "design_tree": {
-      "hello_world_wrapper_0": "",
-      "clk_wiz_0": ""
+      "clk_wiz_0": "",
+      "hello_world_wrapper_0": ""
     },
     "ports": {
       "clk": {
@@ -95,6 +95,18 @@
       }
     },
     "components": {
+      "clk_wiz_0": {
+        "vlnv": "xilinx.com:ip:clk_wiz:6.0",
+        "ip_revision": "13",
+        "xci_name": "top_clk_wiz_0_0",
+        "xci_path": "ip/top_clk_wiz_0_0/top_clk_wiz_0_0.xci",
+        "inst_hier_path": "clk_wiz_0",
+        "parameters": {
+          "USE_RESET": {
+            "value": "false"
+          }
+        }
+      },
       "hello_world_wrapper_0": {
         "vlnv": "xilinx.com:module_ref:hello_world_wrapper:1.0",
         "ip_revision": "1",
@@ -153,18 +165,6 @@
           },
           "busy": {
             "direction": "O"
-          }
-        }
-      },
-      "clk_wiz_0": {
-        "vlnv": "xilinx.com:ip:clk_wiz:6.0",
-        "ip_revision": "13",
-        "xci_name": "top_clk_wiz_0_0",
-        "xci_path": "ip/top_clk_wiz_0_0/top_clk_wiz_0_0.xci",
-        "inst_hier_path": "clk_wiz_0",
-        "parameters": {
-          "USE_RESET": {
-            "value": "false"
           }
         }
       }
