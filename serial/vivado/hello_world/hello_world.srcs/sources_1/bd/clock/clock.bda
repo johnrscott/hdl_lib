@@ -175,12 +175,12 @@
         ],
         "vertices": {
             "V0": {
-                "VM": "top",
+                "VM": "clock",
                 "VT": "BC"
             },
             "V1": {
                 "VH": "2",
-                "VM": "top",
+                "VM": "clock",
                 "VT": "VR"
             },
             "V2": {
