@@ -1,6 +1,6 @@
 run:
 	mkdir -p build
-	cd build/; vivado -mode tcl -script ../run.tcl
+	cd build/; vivado -mode batch -script ../run.tcl
 
 .PHONY: clean
 clean:
