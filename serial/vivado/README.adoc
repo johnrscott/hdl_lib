@@ -1,0 +1,9 @@
+= Xilinx Device Tests
+
+This folder contains the sources for use with Vivado for programming Xilinx devices. 
+
+Some notes:
+
+* Vivado does not allow a SystemVerilog top-level module, so the design must be wrapped in a Verilog module.
+* Do not use a block design as the top-level module; it does not refresh properly when the RTL changes. Instead, use the RTL verilog wrapper as the top module, and place the clock generator inside this module
+** Generate the clock module by creating a block design, adding the clocking wizard, generating output products, and then creating an HDL wrapper.
