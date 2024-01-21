@@ -11,18 +11,6 @@ module hello_world_wrapper(
       .clk_out1(clk_internal)
    );
 
-   // Copied from instantiation template
-   // clk_wiz_0 instance_name (
-   //    // Clock out ports
-   //    .clk_out1(clk_internal),     // output clk_out1
-   //    // Status and control signals
-   //    .reset(reset), // input reset
-   //    .locked(locked),       // output locked
-   //    // Clock in ports
-   //    .clk_in1(clk)      // input clk_in1
-   // );
-   
-   
     assign tx_debug = tx;
 
     hello_world hello_world(

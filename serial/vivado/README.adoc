@@ -2,6 +2,12 @@
 
 This folder contains the sources for use with Vivado for programming Xilinx devices. 
 
+The main TCL script that synthesises the design and programs the FPGA is `run.tcl`. It is invokved by running `make` (provided that `vivado` is in the path). This creates a build directory and runs Vivado from there, so that all the generated outputs get put in `build/`.
+
+The `run.tcl` script currently has a hard-coded development board serial number.
+
+The only IP generateed by the script is the Clocking Wizard, which wraps an MCMM instance. It makes the module `clk_wiz_0` available, which converts the FPGA external clock to the 100 MHz clock used by the design.
+
 Some notes:
 
 * Vivado does not allow a SystemVerilog top-level module, so the design must be wrapped in a Verilog module.
