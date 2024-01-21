@@ -1,3 +1,6 @@
+set output_dir ./output
+file mkdir $output_dir
+
 create_project -in_memory -part xc7a35ticsg324-1L
 
 read_verilog -sv [ glob ../src/*.sv ]
@@ -28,3 +31,24 @@ export_ip_user_files -of_objects [get_ips] -no_script -sync -force -quiet
 
 synth_design -top hello_world_wrapper
 
+opt_design
+place_design
+phys_opt_design
+route_design
+
+write_bitstream -force $output_dir/bitstream.bit
+
+# Connect to the Digilent Cable on localhost:3121
+open_hw_manager
+connect_hw_server -url localhost:3121
+current_hw_target [get_hw_targets */xilinx_tcf/Digilent/210319B0C665A]
+open_hw_target
+
+# Program and Refresh the XC7K325T Device
+set device [lindex [get_hw_devices] 0]
+current_hw_device $device
+refresh_hw_device -update_hw_probes false $device
+set_property PROGRAM.FILE $output_dir/bitstream.bit $device
+
+program_hw_devices $device
+refresh_hw_device $device
