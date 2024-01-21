@@ -1,11 +1,8 @@
-set output_dir ./output
-file mkdir $output_dir
-
 create_project -in_memory -part xc7a35ticsg324-1L
 
-read_verilog -sv [ glob ../src/*.sv ]
-read_verilog hello_world_wrapper.v
-read_xdc constraints.xdc
+read_verilog -sv [ glob ../../src/*.sv ]
+read_verilog ../hello_world_wrapper.v
+read_xdc ../constraints.xdc
 
 # Copied from Vivado
 # set_property board_part digilentinc.com:arty-a7-35:part0:1.1
@@ -36,7 +33,7 @@ place_design
 phys_opt_design
 route_design
 
-write_bitstream -force $output_dir/bitstream.bit
+write_bitstream -force bitstream.bit
 
 # Connect to the Digilent Cable on localhost:3121
 open_hw_manager
@@ -48,7 +45,7 @@ open_hw_target
 set device [lindex [get_hw_devices] 0]
 current_hw_device $device
 refresh_hw_device -update_hw_probes false $device
-set_property PROGRAM.FILE $output_dir/bitstream.bit $device
+set_property PROGRAM.FILE bitstream.bit $device
 
 program_hw_devices $device
 refresh_hw_device $device
