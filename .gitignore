@@ -19,3 +19,4 @@ obj_dir/
 .Xil
 *.tmp
 *.out
+*.srcs
