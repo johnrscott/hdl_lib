@@ -7,3 +7,5 @@ read_ip ./.srcs/sources_1/ip/clk_wiz_0/clk_wiz_0.xci
 
 generate_target all [get_ips]
 
+synth_design -top hello_world_wrapper
+

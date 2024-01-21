@@ -4,12 +4,13 @@ module hello_world_wrapper(
 );
 
     wire clk_internal;
-    
-    clock_wrapper clock_wrapper(
-        .clk_in(clk),
-        .clk_out(clk_internal)
-    );
 
+   // Signal names as documented in IP documentation for clocking wizard?
+   clk_wiz_0 clk_wiz_0(
+      .clk_in1(clk),
+      .clk_out1(clk_internal)
+   );
+   
     assign tx_debug = tx;
 
     hello_world hello_world(
