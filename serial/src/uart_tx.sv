@@ -6,7 +6,7 @@ module uart_tx #(
    // How many clock ticks make up one bit (divide
    // clk rate by baud rate). Default gives a baud
    // rate of 115200 at a clock rate of 100 MHz
-   parameter CLOCKS_PER_BIT = 868,
+   parameter CLOCKS_PER_BIT = 4,
    // How many bits of data are in the UART data frame.
    parameter DATA_BITS = 8
 )(
@@ -66,14 +66,44 @@ module uart_tx #(
 
 `ifdef FORMAL
 
+   // Properties of the external interface
+   
    // When reset is asserted, tx (data out) is
-   // high and module is not busy
+   // set high and the module is not busy on the
+   // next clock edge.
    sequence reset_outputs;
       tx && !busy;
-   endsequence
+   endsequence // reset_outputs
+   
+   reset: assert property (@(posedge clk) rst |=> reset_outputs);
 
-   reset: assert property (@(posedge clk) rst |-> reset_outputs);
+   // If the device is not busy, then tx is high
+   //tx_default_high: assert property (@(posedge clk) !busy |-> tx); 
+   
+   // If the module is not busy/reset, asserting send causes the
+   // beginning of the start bit on the next clock edge (tx
+   // falls)
+   // sequence send_condition;
+   //    !rst && !busy && send;
+   // endsequence // send_condition
+   
+   // property start_bit_on_send;
+   //    @(posedge clk) send_condition |=> $fell(tx);
+   // endproperty // start_bit_begins
+   
+   // start_bit: assert property (start_bit_on_send);
+   
 
+   
+   
+   // Properties of the internal implementation
+
+   // The baud counter is never out of range
+   baud_counter_valid: assert property (@(posedge clk) baud_counter < CLOCKS_PER_BIT);
+
+   // The bit counter is never out of range (note +2 for start/stop bit)
+   bit_counter_valid: assert property (@(posedge clk) bit_counter < (DATA_BITS + 2));
+   
 `endif
    
 endmodule
