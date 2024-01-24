@@ -50,7 +50,7 @@ module uart_tx #(
 
    // Increment bit counter if in the DATA state, or reset
    always_ff @(posedge clk) begin: increment_bit_count
-      if (rst || !busy)
+      if (rst || tx_done)
 	bit_counter <= 0;
       else if (shift)
 	bit_counter <= bit_counter + 1;
