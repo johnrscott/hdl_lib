@@ -30,7 +30,7 @@ module uart_tx #(
    // DATA_BITS for start/stop bit.
    assign tx_done = shift && (bit_counter == (DATA_BITS + 1));
 
-   // Load is the same ass requesting a send while a transmission
+   // Load is the same as requesting a send while a transmission
    // is not in progress. Load will immediately be deasserted,
    // since busy goes high. busy remains high until the last
    // baud tick of the last bit (the stop bit), at which point
@@ -50,7 +50,7 @@ module uart_tx #(
 
    // Increment bit counter if in the DATA state, or reset
    always_ff @(posedge clk) begin: increment_bit_count
-      if (rst || tx_done)
+      if (rst || load || tx_done)
 	bit_counter <= 0;
       else if (shift)
 	bit_counter <= bit_counter + 1;
@@ -78,7 +78,7 @@ module uart_tx #(
    reset: assert property (@(posedge clk) rst |=> reset_outputs);
 
    // If the device is not busy, then tx is high
-   //tx_default_high: assert property (@(posedge clk) !busy |-> tx); 
+   tx_default_high: assert property (@(posedge clk) !busy |-> tx); 
    
    // If the module is not busy/reset, asserting send causes the
    // beginning of the start bit on the next clock edge (tx
