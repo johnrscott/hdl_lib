@@ -82,19 +82,35 @@ module uart_tx #(
    
    // If the module is not busy/reset, asserting send causes the
    // beginning of the start bit on the next clock edge (tx
-   // falls)
-   // sequence send_condition;
-   //    !rst && !busy && send;
-   // endsequence // send_condition
+   // falls), which lasts for CLOCKS_PER_BIT.
+   sequence send_condition;
+      !rst && !busy && send;
+   endsequence // send_condition
    
-   // property start_bit_on_send;
-   //    @(posedge clk) send_condition |=> $fell(tx);
-   // endproperty // start_bit_begins
+   property start_bit_on_send;
+      @(posedge clk) send_condition |=> $fell(tx);
+   endproperty // start_bit_begins
    
-   // start_bit: assert property (start_bit_on_send);
-   
+   start_bit: assert property (start_bit_on_send);   
 
+   // Each tx bit lasts for CLOCKS_PER_BIT clock
+   // cycles before changing (i.e. the output baud
+   // rate is correct)
+   property baud_rate;
+      @(posedge clk) disable iff (rst)
+	(busy && $changed(tx)) |-> ##1 $stable(tx)[*(CLOCKS_PER_BIT-1)];
+   endproperty // baud_rate
    
+   baud_rate_correct: assert property (baud_rate);
+
+   // The stop bit should be asserted after the data has been
+   // transmitted
+   property stop_bit;
+      @(posedge clk) disable iff (rst)
+	send_condition |-> ##(9*CLOCKS_PER_BIT + 1) tx;
+   endproperty // stop_bit
+
+   stop_bit_correct: assert property (stop_bit);
    
    // Properties of the internal implementation
 
