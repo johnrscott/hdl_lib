@@ -21,3 +21,6 @@ obj_dir/
 *.out
 *.srcs
 *.bit
+
+# Formal verification results
+formal_*/

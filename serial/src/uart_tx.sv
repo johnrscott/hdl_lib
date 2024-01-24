@@ -1,3 +1,7 @@
+/// UART unbuffered transmitter
+///
+/// 
+///
 module uart_tx #(
    // How many clock ticks make up one bit (divide
    // clk rate by baud rate). Default gives a baud
@@ -59,5 +63,17 @@ module uart_tx #(
       else
 	baud_counter <= baud_counter + 1;
    end
-  
+
+`ifdef FORMAL
+
+   // When reset is asserted, tx (data out) is
+   // high and module is not busy
+   sequence reset_outputs;
+      tx && !busy;
+   endsequence
+
+   reset: assert property (@(posedge clk) rst |-> reset_outputs);
+
+`endif
+   
 endmodule
