@@ -1,0 +1,24 @@
+= Button/Switch Input Module For Debugging
+
+The purpose of this module is to be create push-button-initiated Wishbone transactions that can be used to make simple hardware tests of other wishbone devices.
+
+This is not supposed to be a Wishbone GPIO peripheral, which would make more sense as a Wishbone device (which would receive read requests from external Wishbone controllers, or at most setting an interrupt line on change). This module is specifically designed to trigger new transactions, for use in testing other hardware components.
+
+The module takes 4 buttons and 4 switches as input (mapping to the inputs on the Arty A7 board), and the output is the Wishbone controller interface, with the following signals (using Wishbone B4, pipelined-mode):
+
+* `rst_i` (input): Synchronous active-high reset.
+* `clk_i` (input): clock.
+* `cyc_o` (output): Set while transaction in progress.
+* `stb_o` (output): Set to initiate a new transaction.
+* `we_o` (output): Set to indicate write, cleared for read (always set to 1 for this module).
+* `dat_o` (output): Write-data to be sent to device. One byte, represents state of buttons/switches.
+* `adr_o` (output): The address of the device to send data to.
+* `ack_i` (input): Set by device to indicate transaction terminated with success.
+* `err_i` (input): Set by device to indicate transaction terminated with failure.
+* `rty_i` (input): Set by device to indicate transaction terminated and should be retried.
+* `stall_i` (input): Set by device to indicate not yet ready to accept transaction.
+
+The module synchronises and debounces the button/switch inputs, and then sends a Wishbone transaction each time the state of any of the inputs changes. The transactions are always writes, and the data is a single byte mapped as follows (using Arty A7 labels):
+
+* Bit n, n < 4: `BTNn` is pushed
+* Bit 4+n, n < 4: `SWn` is switched

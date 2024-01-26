@@ -1,0 +1,21 @@
+[tasks]
+main
+
+[options]
+mode prove
+#mode bmc
+depth 100
+
+[engines]
+smtbmc
+
+[script]
+# The order here might be important
+read -formal wishbone.sv
+read -formal debug_buttons.sv
+prep -top debug_buttons
+
+[files]
+src/wishbone.sv
+src/debug_buttons.sv
+
