@@ -73,10 +73,28 @@ module debug_buttons #(
       (input_change(buttons, 0, 1, 3) and input_change(switches, 2, 4, 2)) |->
 	##[0:60] $changed(input_debounce) ##1 (input_debounce[7:4] == 4);
    endproperty
-   
+
+   // Cover a simple case showing the debouncing for both button and switch
+   // inputs at the same time
    bounce_test: cover property (bounce_and_change);
 
+   // Check the debounce counter never exceeds its period
    counter_in_range: assert property (debounce_counter <= DEBOUNCE_PERIOD);
+
+   sequence inputs_stable(n);
+      ($stable(buttons) and $stable(switches))[*n];
+   endsequence
+
+   function logic [7:0] concat_inputs(logic [3:0] buttons, switches);
+      return {switches, buttons};
+   endfunction
+   
+   // Check that button/switch stability for longer than the synchronisation
+   // and debounce period results in a change in the input_debounce. To make
+   // this work, the inputs are set for longer than the time to set the output,
+   // so that the output can be compared directly to the inputs
+   assert property (inputs_stable(20) |->
+	     ##[0:10] (input_debounce == concat_inputs(buttons, switches)));
    
 `endif
    
