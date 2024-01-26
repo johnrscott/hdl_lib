@@ -61,12 +61,20 @@ module debug_buttons #(
 
    default disable iff (wb.rst_i);
 
-   sequence button_change_no_bounce;
-      $stable(switches) throughout ($stable(buttons)[*25] ##1 $changed(buttons) ##1 $stable(buttons)[*25]) 
+   sequence bounce(signal, n);
+      $changed(signal)[*n];
    endsequence
    
-   no_bounce_change: cover property (button_change_no_bounce |-> ##[0:55] $changed(input_debounce));
+   sequence input_change(signal, old_value, new_value, bounces);
+      (signal == old_value)[*20] ##1 bounce(signal, bounces) ##1 (signal == new_value)[*40];
+   endsequence
 
+   property bounce_and_change;
+      (input_change(buttons, 0, 1, 3) and input_change(switches, 2, 4, 2)) |->
+	##[0:60] $changed(input_debounce) ##1 (input_debounce[7:4] == 4);
+   endproperty
+   
+   bounce_test: cover property (bounce_and_change);
    
 `endif
    
