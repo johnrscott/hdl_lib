@@ -22,3 +22,16 @@ The module synchronises and debounces the button/switch inputs, and then sends a
 
 * Bit n, n < 4: `BTNn` is pushed
 * Bit 4+n, n < 4: `SWn` is switched
+
+== Button Debounce Timings
+
+This section contains some basic measurements of the Arty A7 board to establish ballpark debounce timings. All measurements were made using A Rigol DS1054, between the pin on the button/switch and the ground on GPIO port JA. Measurements were made using a slow time base (1us/div) first to catch slow glitches, followed by a faster time base if required. Rise and fall times given below are measured from when the signal begins changing to approximately when the signal achieves its final steady state. Measurements were made with the board powered on.
+
+Buttons display asymmetrical timing behaviour between rising and falling edges. On the rising edge (button press), transition times are very short, ranging from 50ns to 120ns. Fall times (button released) are roughly 1.5us.
+
+The switches (side switches) have a much bigger issue with bouncing, especially when sliding the switch slowly. When sliding the switch quickly, the transition has normally settled within 10 ms. In the worst case scenario (sliding the switch slowly), bouncing can last for up to 200 ms).
+
+By default, this module will assume a 100 MHz clock, and target a debounce period of 50ms, meaning the `DEBOUNCE_PERIOD` is `5_000_000`. Modify this number to trade-off input latency for risk of bouncing artefacts. Bouncing should only affect the switches, since the push buttons have no bouncing problems on this timescale.
+
+
+
