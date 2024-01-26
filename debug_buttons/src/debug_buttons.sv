@@ -17,7 +17,7 @@ module debug_buttons #(
    // debounced register when it has been stable for
    // at least DEBOUNCE_PERIOD
    logic [31:0]	debounce_counter = 0;
-   logic [7:0]	input_sync, input_tmp = 0, input_debounce = 0;;
+   logic [7:0]	input_sync, input_tmp = 0, input_debounce = 0;
    assign input_sync = { switches_sync, buttons_sync };
    
    always_ff @(posedge wb.clk_i) begin: synchronize
@@ -75,6 +75,8 @@ module debug_buttons #(
    endproperty
    
    bounce_test: cover property (bounce_and_change);
+
+   counter_in_range: assert property (debounce_counter <= DEBOUNCE_PERIOD);
    
 `endif
    

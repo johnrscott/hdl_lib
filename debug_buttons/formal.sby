@@ -1,11 +1,13 @@
 [tasks]
-main
+bounded with_depth
+induction with_depth
+cover with_depth
 
 [options]
-#mode prove
-#mode bmc
-mode cover
-depth 100
+with_depth: depth 100
+bounded: mode bmc
+induction: mode prove
+cover: mode cover
 
 [engines]
 smtbmc
