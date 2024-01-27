@@ -19,6 +19,13 @@ module debug_buttons #(
    logic [31:0]	debounce_counter = 0;
    logic [7:0]	input_sync, input_tmp = 0, input_debounce = 0;
    assign input_sync = { switches_sync, buttons_sync };
+
+   // Signal to trigger a wishbone transaction. Set for one
+   // clock cycle if the state of the input changes (this
+   // means changes in the input state while a previous
+   // wishbone transaction is happening will be ignored --
+   // there is no queuing mechanism.
+   logic trigger_wishbone = 0;
    
    always_ff @(posedge wb.clk_i) begin: synchronize
       if (wb.rst_i) begin
@@ -42,8 +49,10 @@ module debug_buttons #(
       end
       else if (debounce_counter == DEBOUNCE_PERIOD) begin
 	 debounce_counter <= 0;
-	 if (input_sync == input_tmp)
-	   input_debounce <= input_tmp;
+	 if (input_sync == input_tmp) begin
+	    input_debounce <= input_tmp;
+	    trigger_wishbone <= 1;
+	 end
       end
       else if (debounce_counter != 0)
 	debounce_counter <= debounce_counter + 1;
@@ -51,8 +60,19 @@ module debug_buttons #(
 	 debounce_counter <= 1;
 	 input_tmp <= input_sync;
       end
+      else
+	trigger_wishbone <= 0;
    end
 
+   always_ff @(posedge wb.clk_i) begin: wishbone_transaction
+      if (wb.rst_i)
+	wb.ctrl_reset();
+      else if (trigger_wishbone && !wb.cyc_o)
+	wb.ctrl_start_write(input_debounce);
+      else if (wb.stall_i)
+	; // Do nothing
+      else if ()
+   end
 
 `ifdef FORMAL
 
