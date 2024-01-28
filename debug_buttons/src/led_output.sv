@@ -16,8 +16,10 @@ module led_output(
    assign rgb_leds = state[7:4];
    
    always_ff @(posedge wb.clk_i) begin: wishbone_response
-      if (wb.rst_i)
+      if (wb.rst_i) begin
 	 wb.ack_o <= 0;
+	 state <= 0;
+      end
       else if (wb.cyc_i && wb.stb_i) begin
 	 state <= wb.dat_i;
 	 wb.ack_o <= 1;
