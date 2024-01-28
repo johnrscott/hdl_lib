@@ -65,13 +65,7 @@ module debug_buttons #(
    end
 
    always_ff @(posedge wb.clk_i) begin: wishbone_transaction
-      if (wb.rst_i)
-	wb.ctrl_reset();
-      else if (trigger_wishbone && !wb.cyc_o)
-	wb.ctrl_start_write(input_debounce);
-      else if (wb.stall_i)
-	; // Do nothing
-      else if ()
+      wb.cycle_process(trigger_wishbone, 1, input_debounce);
    end
 
 `ifdef FORMAL
