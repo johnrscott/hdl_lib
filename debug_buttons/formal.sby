@@ -16,9 +16,11 @@ smtbmc
 # The order here might be important
 read -formal wishbone.sv
 read -formal debug_buttons.sv
+read -formal led_output.sv
 prep -top debug_buttons
 
 [files]
 src/wishbone.sv
 src/debug_buttons.sv
+src/led_output.sv
 
