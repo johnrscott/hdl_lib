@@ -1,6 +1,7 @@
 create_project -in_memory -part xc7a35ticsg324-1L
 
 read_verilog -sv [ glob ../../src/*.sv ]
+read_verilog -sv ../top_wrapper.sv
 read_xdc ../constraints.xdc
 
 # Copied from Vivado
@@ -25,7 +26,7 @@ synth_ip [get_ips]
 # Copied from Vivado (does not seem to fix issue)
 export_ip_user_files -of_objects [get_ips] -no_script -sync -force -quiet
 
-synth_design -top buttons_to_leds
+synth_design -top top_wrapper
 
 opt_design
 place_design

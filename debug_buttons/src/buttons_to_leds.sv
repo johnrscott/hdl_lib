@@ -3,7 +3,7 @@ import types::rgb_led_t;
 module buttons_to_leds(
    input	      clk_i, rst_i,
    input [3:0]	      buttons, switches,
-   output logic [3:0] green_leds[],
+   output logic [3:0] green_leds,
    output	      rgb_led_t [3:0] rgb_leds
 );
 

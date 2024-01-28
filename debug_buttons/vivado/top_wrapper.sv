@@ -20,8 +20,6 @@ module top_wrapper(
       .clk_out1(clk_internal)
    );
 
-   assign tx_debug = tx;
-
    buttons_to_leds buttons_to_leds(.*);
 
 endmodule
