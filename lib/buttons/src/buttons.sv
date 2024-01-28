@@ -1,4 +1,4 @@
-module debug_buttons #(
+module buttons #(
    // 50 ms debouncing (mainly for slide switches) assuming 100MHz clock
    parameter DEBOUNCE_PERIOD = 5//_000_000
 )(

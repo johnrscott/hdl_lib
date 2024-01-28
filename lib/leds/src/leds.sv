@@ -1,6 +1,6 @@
 import types::rgb_led_t;
   
-module led_output(
+module leds(
    output logic [3:0] green_leds,
    output	      rgb_led_t [3:0] rgb_leds,
    wishbone.device    wb

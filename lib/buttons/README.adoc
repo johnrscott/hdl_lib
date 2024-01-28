@@ -1,6 +1,6 @@
 = Button/Switch Input Module For Debugging
 
-The purpose of this module is to be create push-button-initiated Wishbone transactions that can be used to make simple hardware tests of other wishbone devices.
+The purpose of this module is to be create push-button-initiated Wishbone transactions that can be used to make simple hardware tests of other Wishbone devices.
 
 This is not supposed to be a Wishbone GPIO peripheral, which would make more sense as a Wishbone device (which would receive read requests from external Wishbone controllers, or at most setting an interrupt line on change). This module is specifically designed to trigger new transactions, for use in testing other hardware components.
 
