@@ -8,11 +8,11 @@ The wrapper contains all the ports available on the Arty A7. By instantiating th
 
 In order for this to work, the following standard names should be used in the examples for top-level inputs and outputs designed to be mapped to Arty A7 board inputs/outputs:
 
-* `input logic clk_ext`: the board clock (100 MHz)
-* `input logic rstn_ext`: the board reset button
+* `input logic clk_i`: the clock, derived from the board clock via the clocking wizard
+* `input logic rst_i`: the board reset button, negated to make active-high
 * `input [3:0] buttons, switches`: the 4 buttons and 4 switches
 * `output rgb_led_t [3:0] rgb_leds`: the 4 RGB
-
+* `tx`
 
 The mapping is achieved using the `arty_a7.xdc` constraints file. This file can be modified to suit another board (by changing the port locations), provided that the new board has similar enough peripherals (i.e. enough input buttons, LEDs, and a UART connection). If not, the examples may need to be modified to suit the new board.
 
