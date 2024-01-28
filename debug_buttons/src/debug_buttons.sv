@@ -64,8 +64,43 @@ module debug_buttons #(
 	trigger_wishbone <= 0;
    end
 
+   /// High if device returns acknowledge, retry, or
+   /// error responses
+   function logic dev_response();
+      return (wb.ack_i || wb.rty_i || wb.err_i);
+   endfunction
+   
+   // State of cycle
+   enum {
+      IDLE, // cyc_o is low, transaction not in progress
+      START_CYCLE, // cyc_o and stb_o set, stays here until stall_i is low
+      AWAIT_DEV_RESPONSE // cyc_o set, stb_o cleared, wait for ack/err/rty  
+   } state = IDLE;
+
+   assign wb.we_o = 1;
+   
    always_ff @(posedge wb.clk_i) begin: wishbone_transaction
-      wb.cycle_process(trigger_wishbone, 1, input_debounce);
+      if (wb.rst_i) begin
+	 wb.cyc_o <= 0;
+	 wb.stb_o <= 0;
+      end
+      else
+	case (state)
+	  IDLE: if (trigger_wishbone) begin
+	     wb.dat_o <= input_debounce;
+	     wb.cyc_o <= 1;
+	     wb.stb_o <= 1;
+	     state <= START_CYCLE;
+	  end
+	  START_CYCLE: if (!wb.stall_i) begin
+	     wb.stb_o <= 0;
+	     state <= AWAIT_DEV_RESPONSE;
+	  end
+	  AWAIT_DEV_RESPONSE: if (dev_response()) begin
+	     wb.cyc_o <= 0;
+	     state <= IDLE;
+	  end
+	endcase
    end
 
 `ifdef FORMAL
