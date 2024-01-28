@@ -14,13 +14,17 @@ smtbmc
 
 [script]
 # The order here might be important
+read -formal types.sv  
 read -formal wishbone.sv
 read -formal debug_buttons.sv
 read -formal led_output.sv
-prep -top debug_buttons
+read -formal buttons_to_leds.sv  
+prep -top buttons_to_leds
 
 [files]
+src/types.sv
 src/wishbone.sv
 src/debug_buttons.sv
 src/led_output.sv
+src/buttons_to_leds.sv
 

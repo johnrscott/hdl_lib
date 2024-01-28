@@ -1,8 +1,4 @@
-typedef struct packed {
-   logic red;
-   logic green;
-   logic blue;
-} rgb_led_t;
+import types::rgb_led_t;
   
 module led_output(
    output logic [3:0] green_leds,
@@ -22,8 +18,13 @@ module led_output(
    always_ff @(posedge wb.clk_i) begin: wishbone_response
       if (wb.rst_i)
 	 wb.ack_o <= 0;
-      else if (wb.cyc_o && wb.stb_o)
-	state <= wb.dat_i;
+      else if (wb.cyc_i && wb.stb_i) begin
+	 state <= wb.dat_i;
+	 wb.ack_o <= 1;
+      end
+      else
+	wb.ack_o <= 0;
+	
    end
 
 endmodule

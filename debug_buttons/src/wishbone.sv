@@ -11,7 +11,7 @@ interface wishbone #(parameter DAT_WIDTH = 8)(input logic clk_i, rst_i);
 
    modport device(
       output .ack_o(ack_i), .err_o(err_i), .rty_o(rty_i), .stall_o(stall_i),
-      input clk_i, rst_i, .cyc_i(cyc_o), .stb_i(stb_o), .we_i(we_o)
+      input clk_i, rst_i, .cyc_i(cyc_o), .stb_i(stb_o), .we_i(we_o), .dat_i(dat_o)
    );
       
 endinterface
