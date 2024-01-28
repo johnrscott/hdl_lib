@@ -24,7 +24,6 @@ module led_output(
       end
       else
 	wb.ack_o <= 0;
-	
    end
 
 endmodule
