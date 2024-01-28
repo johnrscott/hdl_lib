@@ -1,8 +1,24 @@
 create_project -in_memory -part xc7a35ticsg324-1L
 
-read_verilog -sv [ glob ../../src/*.sv ]
-read_verilog -sv ../top_wrapper.sv
-read_xdc ../constraints.xdc
+# Set the name of the example to build (this is the folder name in
+# examples/)
+set example buttons_to_leds
+
+# Set the name of the board. This will pick out a *.xdc file with the
+# same name (currently only Arty A7 has been added, but similar boards
+# would work too if the port mapping constraints were modified).
+set board_name arty_a7
+
+# Read the example to synthesize/program
+read_verilog -sv [ glob ../../examples/$example/src/*.sv ]
+
+# Read the library (reads all the modules from all the components,
+# even if some are unused)
+read_verilog -sv [ glob ../../lib/*/src/*.sv ]
+
+# Read the generic top wrapper and Arty A7 constraints
+read_verilog -sv ../top.sv
+read_xdc ../arty_a7.xdc
 
 # Copied from Vivado
 # set_property board_part digilentinc.com:arty-a7-35:part0:1.1
@@ -26,7 +42,7 @@ synth_ip [get_ips]
 # Copied from Vivado (does not seem to fix issue)
 export_ip_user_files -of_objects [get_ips] -no_script -sync -force -quiet
 
-synth_design -top top_wrapper
+synth_design -top top -verilog_define MOD=$example
 
 opt_design
 place_design

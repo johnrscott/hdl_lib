@@ -10,7 +10,7 @@ module buttons_to_leds(
    localparam DEBOUNCE_PERIOD = 5_000_000;
    
    wishbone wb(.clk_i, .rst_i);
-   debug_buttons debug_buttons(.buttons, .switches, .wb);
-   led_output led_output(.green_leds, .rgb_leds, .wb);
+   buttons buttons(.buttons, .switches, .wb);
+   leds leds(.green_leds, .rgb_leds, .wb);
    
 endmodule

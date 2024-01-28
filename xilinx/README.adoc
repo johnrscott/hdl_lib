@@ -1,0 +1,33 @@
+= Synthesis for Xilinx Devices
+
+This folder contains scripts to synthesise and program Xilinx FPGA development boards. It has been tested with the Arty A7 development board.
+
+The same top level wrapper is used for all the examples. It instantiates the example, uses the clocking wizard IP to generate the internal clock `clk_i` from the external board clock, and converts the board active-low reset to the active-high reset `rst_i`.
+
+The wrapper contains all the ports available on the Arty A7. By instantiating the example module using the wildcard port mapping syntax `mod(.*)`, the ports used by the example are connected up; all the unused ports are tied off to zero by the synthesis tool.
+
+In order for this to work, the following standard names should be used in the examples for top-level inputs and outputs designed to be mapped to Arty A7 board inputs/outputs:
+
+* `input logic clk_ext`: the board clock (100 MHz)
+* `input logic rstn_ext`: the board reset button
+* `input [3:0] buttons, switches`: the 4 buttons and 4 switches
+* `output rgb_led_t [3:0] rgb_leds`: the 4 RGB
+
+
+The mapping is achieved using the `arty_a7.xdc` constraints file. This file can be modified to suit another board (by changing the port locations), provided that the new board has similar enough peripherals (i.e. enough input buttons, LEDs, and a UART connection). If not, the examples may need to be modified to suit the new board.
+
+== Notes
+
+This folder contains the sources for use with Vivado for programming Xilinx devices. 
+
+The main TCL script that synthesises the design and programs the FPGA is `run.tcl`. It is invokved by running `make` (provided that `vivado` is in the path). This creates a build directory and runs Vivado from there, so that all the generated outputs get put in `build/`.
+
+The `run.tcl` script currently has a hard-coded development board serial number.
+
+The only IP generateed by the script is the Clocking Wizard, which wraps an MCMM instance. It makes the module `clk_wiz_0` available, which converts the FPGA external clock to the 100 MHz clock used by the design.
+
+Some notes:
+
+* Vivado does not allow a SystemVerilog top-level module, so the design must be wrapped in a Verilog module.
+* Do not use a block design as the top-level module; it does not refresh properly when the RTL changes. Instead, use the RTL verilog wrapper as the top module, and place the clock generator inside this module
+** Generate the clock module by creating a block design, adding the clocking wizard, generating output products, and then creating an HDL wrapper.
