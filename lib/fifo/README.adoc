@@ -1,0 +1,5 @@
+= First-in first-out Module
+
+This FIFO device is designed to buffer Wishbone transactions using the data flow interconnection (transactions are pushed to the device interface, and passed on to downstream modules using the controller interface).
+
+
