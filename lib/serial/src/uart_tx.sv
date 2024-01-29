@@ -158,48 +158,27 @@ module uart_tx #(
       ##[1:$] wishbone_finishes
       ##[1:$] wishbone_request);
    
-   /*
-    
    // If the module is not busy/reset, asserting send causes the
    // beginning of the start bit on the next clock edge (tx
    // falls), which lasts for CLOCKS_PER_BIT.
-   sequence send_condition;
-      !busy && send;
-   endsequence // send_condition
-   
-   property start_bit_on_send;
-      @(posedge clk) send_condition |=> $fell(tx);
-   endproperty // start_bit_begins
-   
-   start_bit: assert property (start_bit_on_send);   
+   start_bit: assert property (
+      wishbone_device_accepts |=> ($fell(uart_tx) and !uart_tx[*CLOCKS_PER_BIT]));
    
    // Each tx bit lasts for CLOCKS_PER_BIT clock
    // cycles before changing (i.e. the output baud
    // rate is correct)
-   property baud_rate;
-      @(posedge clk) disable iff (rst)
-	(busy && $changed(tx)) |-> ##1 $stable(tx)[*(CLOCKS_PER_BIT-1)];
-   endproperty // baud_rate
-   
-   baud_rate_correct: assert property (baud_rate);
+   baud_rate_correct: assert property (
+      (busy && $changed(uart_tx)) |=> $stable(uart_tx)[*(CLOCKS_PER_BIT-1)]);
 
    // The stop bit should be asserted after the data has been
    // transmitted
-   property stop_bit;
-      @(posedge clk) disable iff (rst)
-	send_condition |-> ##(9*CLOCKS_PER_BIT + 1) tx;
-   endproperty // stop_bit
-
-   stop_bit_correct: assert property (stop_bit);
+   stop_bit_correct: assert property (
+      wishbone_device_accepts |=> ##(9*CLOCKS_PER_BIT) uart_tx[*CLOCKS_PER_BIT]);
    
    // Properties of the internal implementation
 
-   // The baud counter is never out of range
-   baud_counter_valid: assert property (@(posedge clk) baud_counter < CLOCKS_PER_BIT);
-
    // The bit counter is never out of range (note +2 for start/stop bit)
-   bit_counter_valid: assert property (@(posedge clk) bit_counter < (DAT_WIDTH + 2));
-    */
+   bit_counter_valid: assert property (bit_counter < (DAT_WIDTH + 2));
        
 `endif
    
