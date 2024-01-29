@@ -18,12 +18,12 @@
 module tx_shift_reg(
    input logic clk, rst, load, shift,
    input logic [7:0] data,
-   output tx
+   output uart_tx
 );
 
    logic [9:0] shift_reg = '1;
 
-   assign tx = shift_reg[0];
+   assign uart_tx = shift_reg[0];
    
    always_ff @(posedge clk) begin: reset_load_or_shift
       if (rst)

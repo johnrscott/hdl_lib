@@ -9,8 +9,8 @@ module top(
    output logic [3:0] green_leds,
    output	      rgb_led_t [3:0] rgb_leds,
 		  
-   // UART (debug is routed to 
-   output tx, tx_debug
+   // UART signals
+   output uart_tx, uart_tx_debug
 );
 
    // These internal signals are common to all the Wishbone
@@ -27,6 +27,9 @@ module top(
       .clk_out1(clk_i)
    );
 
+   // Route the UART signals to headers for debugging
+   assign uart_tx_debug = uart_tx;
+   
    // Pick the top level module here (defined by the TCL
    // script). It will pick the ports it needs from the
    // inputs (otherwise will be tied to ground).

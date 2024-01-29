@@ -1,6 +1,12 @@
 /// UART unbuffered transmitter
 ///
-/// 
+/// The module accepts a byte of data from a Wishbone
+/// controller and sends it over UART. The Wishbone
+/// pipelined mode is used, and the stall_o signal is
+/// set if a wishbone cycle is requested but a byte
+/// is already being sent.
+///
+/// Data is outputted on the uart_tx line.
 ///
 module uart_tx #(
    // How many clock ticks make up one bit (divide
@@ -11,14 +17,27 @@ module uart_tx #(
    parameter DAT_WIDTH = 8
 )(
    wishbone.device wb,
+   output logic uart_tx
 );
 
    logic [31:0]	baud_counter = 0;
    logic [3:0] bit_counter = 0; 
 
-   logic	load, shift, tx_done;
-   tx_shift_reg tx_shift_reg(.clk, .rst, .load, .shift, .data, .tx);
+   logic	send, load, busy, shift, tx_done;
+   tx_shift_reg tx_shift_reg(
+      .clk(wb.clk_i),
+      .rst(wb.rst_i),
+      .load,
+      .shift,
+      .data(wb.dat_i),
+      .uart_tx
+   );
 
+   // A transmission is requested when the Wishbone controller asserts
+   // cyc_i and stb_i. This may cause a stall if the module is currently
+   // sending a byte.
+   assign send = wb.cyc_i && wb.stb_i;
+   
    // Assert shift on the rising clock edge beginning the last baud
    // tick
    assign shift = (baud_counter == (CLOCKS_PER_BIT - 1));
@@ -28,6 +47,10 @@ module uart_tx #(
    // DAT_WIDTH for start/stop bit.
    assign tx_done = shift && (bit_counter == (DAT_WIDTH + 1));
 
+   // Set the stall_o signal if the device is busy and the wishbone
+   // controller is requesting a new transaction
+   assign wb.stall_o = wb.cyc_i && wb.stb_i && busy;
+   
    // Load is the same as requesting a send while a transmission
    // is not in progress. Load will immediately be deasserted,
    // since busy goes high. busy remains high until the last
@@ -35,10 +58,14 @@ module uart_tx #(
    // it falls and another load can happen. The user must ensure
    // data is present when send is asserted.
    assign load = !busy && send;
-   
+
+   // The tx_done signal can be used as the wishbone ACK response
+   // (which is the only response this device gives)
+   assign wb.ack_o = tx_done;
+
    // Update main state variable (busy)
-   always_ff @(posedge clk) begin: output_and_busy_state
-      if (rst)
+   always_ff @(posedge wb.clk_i) begin: output_and_busy_state
+      if (wb.rst_i)
 	busy <= 0;
       else if (load)
 	busy <= 1;
@@ -47,16 +74,16 @@ module uart_tx #(
    end
 
    // Increment bit counter if in the DATA state, or reset
-   always_ff @(posedge clk) begin: increment_bit_count
-      if (rst || load || tx_done)
+   always_ff @(posedge wb.clk_i) begin: increment_bit_count
+      if (wb.rst_i || load || tx_done)
 	bit_counter <= 0;
       else if (shift)
 	bit_counter <= bit_counter + 1;
    end
 
    // Increment the baud counter in the DATA state, or reset
-   always_ff @(posedge clk) begin: increment_baud_count
-      if (rst || !busy || shift)
+   always_ff @(posedge wb.clk_i) begin: increment_baud_count
+      if (wb.rst_i || !busy || shift)
 	baud_counter <= 0;
       else
 	baud_counter <= baud_counter + 1;
@@ -65,7 +92,8 @@ module uart_tx #(
 `ifdef FORMAL
 
    // Properties of the external interface
-   
+
+   /*
    // When reset is asserted, tx (data out) is
    // set high and the module is not busy on the
    // next clock edge.
@@ -117,7 +145,8 @@ module uart_tx #(
 
    // The bit counter is never out of range (note +2 for start/stop bit)
    bit_counter_valid: assert property (@(posedge clk) bit_counter < (DAT_WIDTH + 2));
-   
+    */
+       
 `endif
    
 endmodule

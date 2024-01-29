@@ -12,9 +12,10 @@ smtbmc
 [script]
 read -formal uart_tx.sv
 read -formal tx_shift_reg.sv
+read -formal wishbone.sv
 prep -top uart_tx
 
 [files]
 src/uart_tx.sv
 src/tx_shift_reg.sv
-
+../common/src/wishbone.sv
