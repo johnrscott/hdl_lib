@@ -140,7 +140,6 @@ module uart_tx #(
 	wishbone_request |->
 	(wishbone_request s_until wishbone_device_accepts) 
      );
-   
 
    // If the cycle signal is low, no wishbone transaction is happening
    // and all other signals are undefined
