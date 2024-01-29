@@ -48,7 +48,7 @@ module uart_tx #(
    assign tx_done = shift && (bit_counter == (DAT_WIDTH + 1));
 
    // Set the stall_o signal if the device is busy and the wishbone
-   // controller is requesting a new transaction
+   // controller is requesting a new transaction.
    assign wb.stall_o = wb.cyc_i && wb.stb_i && busy;
    
    // Load is the same as requesting a send while a transmission
@@ -105,7 +105,7 @@ module uart_tx #(
    // set high and the module is not busy on the
    // next clock edge.
    sequence reset_outputs;
-      uart_tx && !wb.stall_o && !wb.ack_o;
+      uart_tx && !wb.ack_o;
    endsequence // reset_outputs
    
    reset: assert property (
@@ -115,20 +115,49 @@ module uart_tx #(
    // If the device is not busy, then tx is high
    tx_default_high: assert property (!busy |-> uart_tx); 
 
-   // Check that every Wishbone transaction completes successfully
-   sequence wishbone_starts;
+   // Define Wishbone transactions
+   sequence wishbone_request;
       wb.cyc_i && wb.stb_i;
-   endsequence // wishbone_starts
+   endsequence // wishbone_request
 
    sequence wishbone_finishes;
       wb.cyc_i && wb.ack_o;
    endsequence // wishbone_finishes
+
+   // Assume that cyc_o lasts for full wishbone cycle (start -> ack)
+   wishbone_cycle: assume property (
+      wishbone_request |-> (wb.cyc_i s_until wb.ack_o));
+
+   // After controller has initiated a transaction, device accepts
+   // by clearing stall_o while cyc_i and stb_i are set
+   sequence wishbone_device_accepts;
+     wishbone_request and !wb.stall_o
+   endsequence
+
+   // Assume that the wishbone controller maintains request until
+   // device accepts   
+   wishbone_ctrl_maintains_request: assume property (
+	wishbone_request |->
+	(wishbone_request s_until wishbone_device_accepts) 
+     );
    
-   wishbone_completes: assert property(wishbone_starts |-> 
+
+   // If the cycle signal is low, no wishbone transaction is happening
+   // and all other signals are undefined
+   sequence wishbone_idle;
+      !wb.cyc_i
+   endsequence // wishbone_idle
+   
+   // Check that every Wishbone transaction completes successfully   
+   wishbone_completes: assert property(wishbone_request |-> 
       ##[1:$] wishbone_finishes);
 
-   wishbone_example: cover property(wishbone_starts |-> 
-      ##[1:$] wishbone_finishes);
+   // Provide an example wishbone transaction
+   wishbone_example: cover property(
+      (wishbone_idle and !busy)
+      ##10 wishbone_request 
+      ##[1:$] wishbone_finishes
+      ##[1:$] wishbone_request);
    
    /*
     
