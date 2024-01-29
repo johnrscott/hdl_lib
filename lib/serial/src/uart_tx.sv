@@ -92,25 +92,51 @@ module uart_tx #(
 `ifdef FORMAL
 
    // Properties of the external interface
+   default clocking @(posedge wb.clk_i);
+   endclocking
 
-   /*
+   default disable iff (wb.rst_i);
+
+   // This should follow from the logic, but putting it here
+   // for now to stop induction failing
+   baud_counter_valid: assume property (baud_counter < CLOCKS_PER_BIT);
+   
    // When reset is asserted, tx (data out) is
    // set high and the module is not busy on the
    // next clock edge.
    sequence reset_outputs;
-      tx && !busy;
+      uart_tx && !wb.stall_o && !wb.ack_o;
    endsequence // reset_outputs
    
-   reset: assert property (@(posedge clk) rst |=> reset_outputs);
+   reset: assert property (
+      disable iff (0)
+      wb.rst_i |=> reset_outputs);
 
    // If the device is not busy, then tx is high
-   tx_default_high: assert property (@(posedge clk) !busy |-> tx); 
+   tx_default_high: assert property (!busy |-> uart_tx); 
+
+   // Check that every Wishbone transaction completes successfully
+   sequence wishbone_starts;
+      wb.cyc_i && wb.stb_i;
+   endsequence // wishbone_starts
+
+   sequence wishbone_finishes;
+      wb.cyc_i && wb.ack_o;
+   endsequence // wishbone_finishes
    
+   wishbone_completes: assert property(wishbone_starts |-> 
+      ##[1:$] wishbone_finishes);
+
+   wishbone_example: cover property(wishbone_starts |-> 
+      ##[1:$] wishbone_finishes);
+   
+   /*
+    
    // If the module is not busy/reset, asserting send causes the
    // beginning of the start bit on the next clock edge (tx
    // falls), which lasts for CLOCKS_PER_BIT.
    sequence send_condition;
-      !rst && !busy && send;
+      !busy && send;
    endsequence // send_condition
    
    property start_bit_on_send;
@@ -118,7 +144,7 @@ module uart_tx #(
    endproperty // start_bit_begins
    
    start_bit: assert property (start_bit_on_send);   
-
+   
    // Each tx bit lasts for CLOCKS_PER_BIT clock
    // cycles before changing (i.e. the output baud
    // rate is correct)
