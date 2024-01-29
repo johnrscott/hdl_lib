@@ -8,11 +8,9 @@ module uart_tx #(
    // rate of 115200 at a clock rate of 100 MHz
    parameter CLOCKS_PER_BIT = 4,
    // How many bits of data are in the UART data frame.
-   parameter DATA_BITS = 8
+   parameter DAT_WIDTH = 8
 )(
-   input logic		       clk, rst, send,
-   input logic [DATA_BITS-1:0] data,
-   output logic		       busy, tx
+   wishbone.device wb,
 );
 
    logic [31:0]	baud_counter = 0;
@@ -27,8 +25,8 @@ module uart_tx #(
 
    // Assert transmission done on the rising clock edge beginning
    // the last baud tick of the final bit. Note: adding 2 to the
-   // DATA_BITS for start/stop bit.
-   assign tx_done = shift && (bit_counter == (DATA_BITS + 1));
+   // DAT_WIDTH for start/stop bit.
+   assign tx_done = shift && (bit_counter == (DAT_WIDTH + 1));
 
    // Load is the same as requesting a send while a transmission
    // is not in progress. Load will immediately be deasserted,
@@ -118,7 +116,7 @@ module uart_tx #(
    baud_counter_valid: assert property (@(posedge clk) baud_counter < CLOCKS_PER_BIT);
 
    // The bit counter is never out of range (note +2 for start/stop bit)
-   bit_counter_valid: assert property (@(posedge clk) bit_counter < (DATA_BITS + 2));
+   bit_counter_valid: assert property (@(posedge clk) bit_counter < (DAT_WIDTH + 2));
    
 `endif
    
