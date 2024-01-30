@@ -9,7 +9,10 @@ module fifo #(
    
    logic [7:0] buffer[DEPTH] = '{ default: '0 };
 
-   logic [ADDR_WIDTH-1:0] read_addr, write_addr, count;
+   logic [ADDR_WIDTH-1:0] read_addr, write_addr;
+
+   // Give count an extra bit to express DEPTH
+   logic [ADDR_WIDTH:0]	  count;
    
    logic		  push, pop, full, empty, wishbone_request;
 
@@ -36,14 +39,18 @@ module fifo #(
       .inc(pop),
       .addr(read_addr)
    );
-   
-   // Number of data stored in the buffer
-   assign count = write_addr < read_addr ? 
-		  (DEPTH + write_addr) - read_addr :
-		  write_addr - read_addr;
 
+   always_ff @(posedge wb_i.clk_i) begin: update_count
+      if (wb_i.rst_i)
+	count <= 0;
+      else if (push && !pop)
+	count <= count + 1;
+      else if (pop && !push)
+	count <= count - 1;
+   end
+   
    // Is the buffer full or empty?
-   assign full = (count == DEPTH - 1);
+   assign full = (count == DEPTH);
    assign empty = (count == 0);
 
    // Lags push by one clock
@@ -64,6 +71,21 @@ module fifo #(
    end
 
 `ifdef FORMAL
+
+   // The fact this design has two clocks is really a defect.
+   // In any real instantiation, both clocks should be derived
+   // from the same thing (a common Wishbone SYSCON)
+   default clocking@(posedge wb_i.clk_i);
+   endclocking // wb_i
+
+   // Same comment as above
+   default disable iff (wb_i.rst_i);
+
+   // Data in buffer always less than DEPTH
+   no_overflow: assert property (count <= DEPTH);
+
+   // Check that buffer can fill up
+   buffer_full: cover property (full);
    
 `endif
    
