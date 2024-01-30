@@ -1,0 +1,24 @@
+[tasks]
+bounded with_depth
+induction with_depth
+cover with_depth
+
+[options]
+with_depth: depth 50
+bounded: mode bmc
+induction: mode prove
+cover: mode cover
+
+[engines]
+smtbmc
+
+[script]
+read -formal fifo_addr_gen.sv
+read -formal fifo.sv
+read -formal wishbone.sv
+prep -top fifo
+
+[files]
+src/fifo_addr_gen.sv
+src/fifo.sv
+../common/src/wishbone.sv
