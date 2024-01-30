@@ -12,7 +12,7 @@ module fifo #(
    logic [ADDR_WIDTH-1:0] read_addr, write_addr;
 
    // Give count an extra bit to express DEPTH
-   logic [ADDR_WIDTH:0]	  count;
+   logic [ADDR_WIDTH:0]	  count = 0;
    
    logic		  push, pop, full, empty, wishbone_request;
 
@@ -25,6 +25,8 @@ module fifo #(
    
    // Wishbone transaction accepted if not full
    assign push = wishbone_request && !full;
+
+   assign pop = 0;
    
    fifo_addr_gen #(.ADDR_WIDTH(ADDR_WIDTH)) write_addr_gen(
       .clk(wb_i.clk_i),
@@ -81,6 +83,13 @@ module fifo #(
    // Same comment as above
    default disable iff (wb_i.rst_i);
 
+   // Data is only ever added or removed one item at a time
+   count_inc_or_dec: assert property (
+      (count == 0) ||
+      $stable(count) ||
+      (count == $past(count) + 1) ||
+      (count == $past(count) - 1));
+   
    // Data in buffer always less than DEPTH
    no_overflow: assert property (count <= DEPTH);
 
