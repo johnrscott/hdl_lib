@@ -95,6 +95,25 @@ module fifo #(
 
    // Check that buffer can fill up
    buffer_full: cover property (full);
+
+   sequence non_stalled_push;
+      wishbone_request ##1 wb_i.ack_o;
+   endsequence
+   
+   // Assume upstream wishbone controller holds cyc high for
+   // duration of wishbone cycle (until ack is returned)
+   cycle_duration: assume property (wishbone_request |-> wb_i.cyc_i s_until_with wb_i.ack_o);
+
+   // Assume upstream wishbone controll keeps stb low
+   // unless cyc is high (not required0
+   stb_implies_cyc: assume property (wb_i.stb_i |-> wb_i.cyc_i);
+   
+   wishbone_simple_push: cover property (
+      !wb_i.cyc_i[*10]
+      ##1 non_stalled_push
+      ##1 !wb_i.cyc_i[*10]
+   );
+   
    
 `endif
    
