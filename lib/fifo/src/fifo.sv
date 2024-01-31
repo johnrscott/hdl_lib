@@ -29,11 +29,22 @@ module fifo #(
    // Wishbone transaction accepted if not full
    assign push = wishbone_dev_request && !full;
 
-   // Downstream wishbone transaction accepted if no stall
-   assign pop = wishbone_ctrl_request && !wb_o.stall_i;
+   // Use downstream ack to pop data from the buffer. (This
+   // is also safer when the implementation moves to one that
+   // can handle errors -- data should not be prematurely
+   // deleted.)
+   assign pop = wb_o.ack_i;;
 
    // Route read-data to the downstream data interface
    assign wb_o.dat_o = buffer[read_addr];
+
+   // Since pop occurs on ack, the cyc signal can be tied to
+   // the empty signal. This also fixes formal induction issues
+   // whereby finite device stalls can be in progress while the
+   // buffer is empty, because the formal engine has not
+   // back-propagated far enough to see that the transaction
+   // could not have started.  
+   assign wb_o.cyc_o = !empty;
    
    fifo_addr_gen #(.ADDR_WIDTH(ADDR_WIDTH)) write_addr_gen(
       .clk(wb_i.clk_i),
@@ -80,20 +91,14 @@ module fifo #(
    end
 
    always_ff @(posedge wb_o.clk_i) begin: wishbone_send_data
-      if (wb_o.rst_i) begin
-	 wb_o.cyc_o <= 0;
+      if (wb_o.rst_i)
 	 wb_o.stb_o <= 0;
-      end
-      else if (!empty && !wb_o.cyc_o) begin
-	 wb_o.cyc_o <= 1;	 
+      else if (!empty && !wb_o.cyc_o)
 	 wb_o.stb_o <= 1;
-      end
       else if (pop)
 	wb_o.stb_o <= 0;
-      else if (wb_o.cyc_o && wb_o.ack_i)
-	wb_o.cyc_o <= 0;
    end   
-   
+
 `ifdef FORMAL
 
    // The fact this design has two clocks is really a defect.
