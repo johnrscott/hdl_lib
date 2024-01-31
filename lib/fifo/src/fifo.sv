@@ -15,7 +15,7 @@ module fifo #(
    logic [ADDR_WIDTH:0]	  count = 0;
    
    logic		  push, pop, full, empty, wishbone_dev_request,
-			  wishbone_ctrl_request;
+			  wishbone_ctrl_request, await_ack;
 
    // Upstream wishbone controller makes request
    assign wishbone_dev_request = wb_i.cyc_i && wb_i.stb_i;
@@ -45,6 +45,8 @@ module fifo #(
    // back-propagated far enough to see that the transaction
    // could not have started.  
    assign wb_o.cyc_o = !empty;
+
+   assign wb_o.stb_o = wb_o.cyc_o && !await_ack;
    
    fifo_addr_gen #(.ADDR_WIDTH(ADDR_WIDTH)) write_addr_gen(
       .clk(wb_i.clk_i),
@@ -92,11 +94,11 @@ module fifo #(
 
    always_ff @(posedge wb_o.clk_i) begin: wishbone_send_data
       if (wb_o.rst_i)
-	 wb_o.stb_o <= 0;
-      else if (!empty && !wb_o.cyc_o)
-	 wb_o.stb_o <= 1;
-      else if (pop)
-	wb_o.stb_o <= 0;
+	await_ack <= 0;
+      else if (wb_o.cyc_o && !wb_o.stall_i)
+	await_ack <= 1;
+      else if (wb_o.ack_i)
+	await_ack <= 0;
    end   
 
 `ifdef FORMAL
