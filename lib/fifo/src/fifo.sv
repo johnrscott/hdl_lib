@@ -16,7 +16,6 @@ module fifo #(
    
    logic		  push, pop, full, empty, wishbone_request;
 
-
    // Upstream wishbone controller makes request
    assign wishbone_request = wb_i.cyc_i && wb_i.stb_i;
 
@@ -99,6 +98,10 @@ module fifo #(
    sequence non_stalled_push;
       wishbone_request ##1 wb_i.ack_o;
    endsequence
+
+   sequence stalled_push;
+      wb_i.stall_o[*1:$] ##1 wishbone_request ##1 wb_i.ack_o;
+   endsequence
    
    // Assume upstream wishbone controller holds cyc high for
    // duration of wishbone cycle (until ack is returned)
@@ -106,13 +109,20 @@ module fifo #(
 
    // Assume upstream wishbone controll keeps stb low
    // unless cyc is high (not required0
-   stb_implies_cyc: assume property (wb_i.stb_i |-> wb_i.cyc_i);
+   //stb_implies_cyc: assume property (wb_i.stb_i |-> wb_i.cyc_i);
    
    wishbone_simple_push: cover property (
       !wb_i.cyc_i[*10]
       ##1 non_stalled_push
       ##1 !wb_i.cyc_i[*10]
    );
+
+   wishbone_stalled_push: cover property (
+      !wb_i.cyc_i[*10]
+      ##1 stalled_push
+      ##1 !wb_i.cyc_i[*10]
+   );
+
    
    
 `endif
