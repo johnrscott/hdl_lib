@@ -14,18 +14,26 @@ module fifo #(
    // Give count an extra bit to express DEPTH
    logic [ADDR_WIDTH:0]	  count = 0;
    
-   logic		  push, pop, full, empty, wishbone_request;
+   logic		  push, pop, full, empty, wishbone_dev_request,
+			  wishbone_ctrl_request;
 
    // Upstream wishbone controller makes request
-   assign wishbone_request = wb_i.cyc_i && wb_i.stb_i;
+   assign wishbone_dev_request = wb_i.cyc_i && wb_i.stb_i;
 
+   // Wishbone controller request
+   assign wishbone_ctrl_request = wb_o.cyc_o && wb_o.stb_o;
+   
    // Wishbone device stalls if the buffer is full
-   assign wb_i.stall_o = wishbone_request && full;
+   assign wb_i.stall_o = wishbone_dev_request && full;
    
    // Wishbone transaction accepted if not full
-   assign push = wishbone_request && !full;
+   assign push = wishbone_dev_request && !full;
 
-   assign pop = 0;
+   // Downstream wishbone transaction accepted if no stall
+   assign pop = wishbone_ctrl_request && !wb_o.stall_i;
+
+   // Route read-data to the downstream data interface
+   assign wb_o.dat_o = buffer[read_addr];
    
    fifo_addr_gen #(.ADDR_WIDTH(ADDR_WIDTH)) write_addr_gen(
       .clk(wb_i.clk_i),
@@ -54,7 +62,7 @@ module fifo #(
    assign full = (count == DEPTH);
    assign empty = (count == 0);
 
-   // Lags push by one clock
+   // Acknowledge lags push by one clock
    always_ff @(posedge wb_i.clk_i) begin: wishbone_ack
       if (wb_i.rst_i)
 	 wb_i.ack_o <= 0;
@@ -71,6 +79,21 @@ module fifo #(
 	buffer[write_addr] <= wb_i.dat_i;
    end
 
+   always_ff @(posedge wb_o.clk_i) begin: wishbone_send_data
+      if (wb_o.rst_i) begin
+	 wb_o.cyc_o <= 0;
+	 wb_o.stb_o <= 0;
+      end
+      else if (!empty && !wb_o.cyc_o) begin
+	 wb_o.cyc_o <= 1;	 
+	 wb_o.stb_o <= 1;
+      end
+      else if (pop)
+	wb_o.stb_o <= 0;
+      else if (wb_o.cyc_o && wb_o.ack_i)
+	wb_o.cyc_o <= 0;
+   end   
+   
 `ifdef FORMAL
 
    // The fact this design has two clocks is really a defect.
@@ -82,6 +105,10 @@ module fifo #(
    // Same comment as above
    default disable iff (wb_i.rst_i);
 
+   // Assume that the clocks and resets are always equal
+   clocks_equal: assume property (disable iff (0) wb_i.clk_i == wb_o.clk_i);
+   resets_equal: assume property (disable iff (0) wb_i.rst_i == wb_o.rst_i);
+   
    // Data is only ever added or removed one item at a time
    count_inc_or_dec: assert property (
       (count == 0) ||
@@ -96,20 +123,37 @@ module fifo #(
    buffer_full: cover property (full);
 
    sequence non_stalled_push;
-      wishbone_request ##1 wb_i.ack_o;
+      wishbone_dev_request ##1 wb_i.ack_o;
    endsequence
 
    sequence stalled_push;
-      wb_i.stall_o[*1:$] ##1 wishbone_request ##1 wb_i.ack_o;
+      wb_i.stall_o[*1:$] ##1 wishbone_dev_request ##1 wb_i.ack_o;
    endsequence
    
    // Assume upstream wishbone controller holds cyc high for
    // duration of wishbone cycle (until ack is returned)
-   cycle_duration: assume property (wishbone_request |-> wb_i.cyc_i s_until_with wb_i.ack_o);
+   cycle_duration: assume property (
+      wishbone_dev_request |-> wb_i.cyc_i s_until_with wb_i.ack_o);
 
    // Assume upstream wishbone controll keeps stb low
    // unless cyc is high (not required0
    //stb_implies_cyc: assume property (wb_i.stb_i |-> wb_i.cyc_i);
+
+   // Assume that the downstream Wishbone device only raises
+   // stall if cyc and stb are set
+   downstream_stall_valid: assume property (
+      wb_o.stall_i |-> wb_o.cyc_o && wb_o.stb_o);
+
+   // Assume that the downstream returns ack the cycle after it
+   // has accepted the transaction
+   downstream_ack_follows_pop: assume property (
+      wb_o.cyc_o && wb_o.stb_o && !wb_o.stall_i |=> wb_o.ack_i);
+
+   // Assume that the downstream returns ack only if cyc is high,
+   // 
+   downstream_ack_valid: assume property (wb_o.ack_i |-> wb_o.cyc_o);
+
+
    
    wishbone_simple_push: cover property (
       !wb_i.cyc_i[*10]

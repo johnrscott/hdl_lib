@@ -4,6 +4,13 @@ interface wishbone #(parameter DAT_WIDTH = 8)(input logic clk_i, rst_i);
    logic cyc_o, stb_o, we_o, ack_i, err_i, rty_i, stall_i;
    logic [DAT_WIDTH-1:0] dat_o;
 
+   initial begin
+      cyc_o = 0;
+      stb_o = 0;
+      we_o = 0;
+      dat_o = 0;
+   end
+   
    modport controller(
       output cyc_o, stb_o, we_o, dat_o,
       input  clk_i, rst_i, ack_i, err_i, rty_i, stall_i
