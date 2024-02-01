@@ -36,6 +36,9 @@ module fifo #(
 
    // Route read-data to the downstream data interface
    assign wb_o.dat_o = buffer[read_addr];
+
+   // Always write downstream
+   assign wb_o.we_o = 1;
    
    fifo_addr_gen #(.ADDR_WIDTH(ADDR_WIDTH)) write_addr_gen(
       .clk(wb_i.clk_i),
