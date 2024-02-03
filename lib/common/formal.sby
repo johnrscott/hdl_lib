@@ -1,0 +1,24 @@
+[tasks]
+bounded with_depth
+induction with_depth
+cover with_depth
+
+[options]
+with_depth: depth 50
+bounded: mode bmc
+induction: mode prove
+cover: mode cover
+
+[engines]
+smtbmc
+
+[script]
+read -formal wishbone_classic.sv
+read -formal wishbone_ctrl_classic.sv
+read -formal wishbone_dev_classic.sv
+prep -top wishbone_ctrl_classic
+
+[files]
+src/wishbone_classic.sv
+src/wishbone_ctrl_classic.sv
+src/wishbone_dev_classic.sv

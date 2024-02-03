@@ -6,7 +6,7 @@ interface wishbone_classic #(
 
    // From perspective of controller
    logic cyc_o, stb_o, we_o, ack_i, err_i, rty_i;
-   logic [DAT_WIDTH-1:0] dat_o;
+   logic [DAT_WIDTH-1:0] dat_o, dat_i;
 
    initial begin
       cyc_o = 0;
@@ -17,11 +17,11 @@ interface wishbone_classic #(
    
    modport controller(
       output cyc_o, stb_o, we_o, dat_o,
-      input  clk_i, rst_i, ack_i, err_i, rty_i
+      input  clk_i, rst_i, ack_i, err_i, rty_i, dat_i
    );
 
    modport device(
-      output .ack_o(ack_i), .err_o(err_i), .rty_o(rty_i),
+      output .ack_o(ack_i), .err_o(err_i), .rty_o(rty_i), .dat_o(dat_i),
       input clk_i, rst_i, .cyc_i(cyc_o), .stb_i(stb_o), .we_i(we_o), .dat_i(dat_o)
    );
       

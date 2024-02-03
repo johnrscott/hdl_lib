@@ -16,8 +16,7 @@
 /// Multiple transactions can be performed back to back by
 /// keeping start asserted. In this case, data for the next
 /// transaction should be maintained until ack is asserted,
-/// at which point new write_data/write_en can be loaded (on
-/// the rising ack edge).
+/// at which point new write_data/write_en can be loaded.
 ///  
 module wishbone_ctrl_classic #(
    parameter DAT_WIDTH = 8
@@ -34,7 +33,7 @@ module wishbone_ctrl_classic #(
    assign ack = wb.ack_i;
    assign read_data = wb.dat_i;
    
-   assign wb.cyc_o = sb.stb_o;
+   assign wb.cyc_o = wb.stb_o;
    assign wb.we_o = write_en && wb.cyc_o;
    assign wb.dat_o = write_data;
    
