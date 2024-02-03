@@ -13,10 +13,11 @@ cover: mode cover
 smtbmc
 
 [script]
+read -define FAKE_WB_DEVICE 
 read -formal wishbone_classic.sv
 read -formal wishbone_ctrl_classic.sv
 read -formal wishbone_dev_classic.sv
-prep -top wishbone_ctrl_classic
+prep -top wishbone_ctrl_classic_formal
 
 [files]
 src/wishbone_classic.sv

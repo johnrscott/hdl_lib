@@ -24,5 +24,50 @@ interface wishbone_classic #(
       output .ack_o(ack_i), .err_o(err_i), .rty_o(rty_i), .dat_o(dat_i),
       input clk_i, rst_i, .cyc_i(cyc_o), .stb_i(stb_o), .we_i(we_o), .dat_i(dat_o)
    );
+
+`ifdef FORMAL
+
+   default clocking @(posedge clk_i);
+   endclocking
+
+   default disable iff (rst_i);
+
+ `ifdef FAKE_WB_CONTROLLER
+   // Use this if the top level module is a Wishbone device,
+   // and needs Wishbone-controller assumptions to be satisfied
+   // on an input port
+   
+ `endif
+
+ `ifdef FAKE_WB_DEVICE
+   // Use this if the top level module is a Wishbone controller,
+   // and needs Wishbone-device assumptions to be satisfied
+   // on an input port.
+
+ `endif
+
+   // Convenience definitions for Wishbone protocol
+   logic request, responded;
+   assign request = cyc_o && stb_o;
+   assign response = ack_i || rty_i || err_i;
+
+   sequence cycle(write_en, duration);
+      !cyc_o[*10] ##1 (cyc_o && write_en)[*duration] ##1 !cyc_o[*10]
+   endsequence
+   
+   // 1. Wishbone B4 single read/write protocol
+
+   
+   
+   // Device eventually responds to every request
+   response_follows_request: assert property (request |-> ##[1:$] response);
+
+   // 2. Wishbone example traces
+
+   two_cycle_single_write_cycle: cover property (cycle(1, 2));
+
+   five_cycle_single_read_cycle: cover property (cycle(1, 5));
+ 
+`endif
       
 endinterface

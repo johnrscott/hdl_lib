@@ -46,4 +46,25 @@ module wishbone_ctrl_classic #(
 	wb.stb_o <= 0;
    end
 
+`ifdef FORMAL
+
+   default clocking @(posedge wb.clk_i);
+   endclocking
+
+   default disable iff (wb.rst_i);
+
+`endif
+   
+endmodule
+
+/// Wrap the module with the Wishbone interface in order to
+/// instantiate (and therefore run assertions in) the interface
+module wishbone_ctrl_classic_formal(input clk_i, rst_i);
+
+   logic cyc, ack, write_en, start;
+   logic [7:0] write_data, read_data;
+   
+   wishbone_classic wb(.clk_i, .rst_i);
+   wishbone_ctrl_classic ctrl(.*);
+   
 endmodule
