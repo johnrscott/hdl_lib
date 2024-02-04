@@ -8,7 +8,7 @@
 /// requesting a read/write cycle.
 ///
 /// On the first rising clock edge where request is asserted,
-/// the device is free to respond to the request by reading
+/// the device is free to respond to the request by readingt
 /// write_data or setting write_data, setting ack to indicate
 /// it has completed the request. Alternatively, the device
 /// can delay ack by any number of clock cycles. During this

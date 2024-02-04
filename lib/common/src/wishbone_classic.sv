@@ -72,12 +72,10 @@ interface wishbone_classic #(
 	##1 request_stable[*duration] ##1 response ##1 !cyc_o[*10];
    endsequence
 
-   
    // 1. Wishbone B4 single read/write protocol
    
    response_follows_request: assert property (request |-> ##[1:$] response);
    request_stable_until_response: assert property (awaiting_response |-> request_stable);
-   
    
    // 2. Wishbone example traces
 
