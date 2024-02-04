@@ -50,13 +50,17 @@ interface wishbone_classic #(
    logic request, responded;
    assign request = cyc_o && stb_o;
    assign response = ack_i || rty_i || err_i;
-
+   
    sequence cycle(write_en, duration);
       !cyc_o[*10] ##1 (cyc_o && (we_o == write_en))[*duration] ##1 !cyc_o[*10]
    endsequence
 
+   sequence not_cycle_start();
+      cyc_o && !($rose(cyc_o) || $past(ack_i));
+   endsequence
+   
    sequence awaiting_response();
-      cyc_o and $stable(cyc_o) and !response;
+      cyc_o and not_cycle_start;
    endsequence // awaiting_response
    
    sequence request_stable();

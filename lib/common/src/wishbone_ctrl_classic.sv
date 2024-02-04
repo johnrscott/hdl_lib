@@ -8,7 +8,7 @@
 /// is set while the cycle is underway, and ack is set to
 /// indicate cycle completion.
 ///
-// A read transaction is prepared by clearing write_en, and
+/// A read transaction is prepared by clearing write_en, and
 /// asserting start. The cyc signal is set while the transaction
 /// is underway, and ack is set to indicate that read_data
 /// contains valid data.
@@ -32,20 +32,35 @@ module wishbone_ctrl_classic #(
    assign cyc = wb.cyc_o;
    assign ack = wb.ack_i;
    assign read_data = wb.dat_i;
-   
+
    assign wb.cyc_o = wb.stb_o;
-   assign wb.we_o = write_en && wb.cyc_o;
-   assign wb.dat_o = write_data;
+
+   // Set prior to the first clock cycle of the wishbone cycle.  Used
+   // to latch data (write_data and write_en), and set cyc/stb. Set
+   // either when start is asserted and no cycle is in progress, or
+   // when a cycle is in progress, but start is set and ack is set
+   // (the last clock cycle before a back-to-back wishbone cycle)
+   logic cycle_start;
+   assign cycle_start = start && (!cyc || ack);
    
    always_ff @(posedge wb.clk_i) begin: start_transaction
-      if (wb.rst_i)
-	wb.stb_o <= 0;
-      else if (start)
-	wb.stb_o <= 1;
-      else if (wb.ack_i)
-	wb.stb_o <= 0;
+      if (wb.rst_i) begin
+	 wb.stb_o <= 0;
+	 wb.dat_o <= 0;
+	 wb.we_o <= 0;
+      end
+      else if (cycle_start) begin
+	 wb.stb_o <= 1;
+	 wb.dat_o <= write_data;
+	 wb.we_o <= write_en;
+      end
+      else if (ack) begin
+	 wb.stb_o <= 0;
+	 wb.dat_o <= 0;
+	 wb.we_o <= 0;
+      end 
    end
-
+   
 `ifdef FORMAL
 
    default clocking @(posedge wb.clk_i);
