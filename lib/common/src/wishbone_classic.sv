@@ -32,20 +32,6 @@ interface wishbone_classic #(
 
    default disable iff (rst_i);
 
- `ifdef FAKE_WB_CONTROLLER
-   // Use this if the top level module is a Wishbone device,
-   // and needs Wishbone-controller assumptions to be satisfied
-   // on an input port
-   
- `endif
-
- `ifdef FAKE_WB_DEVICE
-   // Use this if the top level module is a Wishbone controller,
-   // and needs Wishbone-device assumptions to be satisfied
-   // on an input port.
-
- `endif
-
    // Convenience definitions for Wishbone protocol
    logic request, responded;
    assign request = cyc_o && stb_o;
@@ -76,12 +62,35 @@ interface wishbone_classic #(
    
    response_follows_request: assert property (request |-> ##[1:$] response);
    request_stable_until_response: assert property (awaiting_response |-> request_stable);
+   cyc_high_until_response: assert property ($fell(cyc_o) |-> ack_i);
    
    // 2. Wishbone example traces
 
    two_cycle_single_write_cycle: cover property (cycle(1, 2));
    five_cycle_single_read_cycle: cover property (cycle(0, 5));
    three_async_ack_cycles: cover property (!cyc_o[*10] ##1 async_ack_cycle(0)[*3] ##1 !cyc_o[*10]);
+
+   // 3. Assumptions if only one or other side of the interface
+   // is connected
+   
+ `ifdef FAKE_WB_CONTROLLER
+   // Use this if the top level module is a Wishbone device,
+   // and needs Wishbone-controller assumptions to be satisfied
+   // on an input port
+
+   assume_request_stable_until_response: assume property (awaiting_response |-> request_stable);   
+
+   assume_cyc_high_until_response: assume property ($fell(cyc_o) |-> ack_i);
+   
+ `endif
+
+ `ifdef FAKE_WB_DEVICE
+   // Use this if the top level module is a Wishbone controller,
+   // and needs Wishbone-device assumptions to be satisfied
+   // on an input port.
+
+ `endif
+
    
 `endif
       

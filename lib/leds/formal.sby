@@ -1,0 +1,28 @@
+[tasks]
+bounded with_depth
+induction with_depth
+cover with_depth
+
+[options]
+with_depth: depth 100
+bounded: mode bmc
+induction: mode prove
+cover: mode cover
+
+[engines]
+smtbmc
+
+[script]
+read -define FAKE_WB_CONTROLLER
+read -formal types.sv  
+read -formal wishbone_classic.sv
+read -formal wishbone_dev_classic.sv
+read -formal leds.sv
+prep -top leds
+
+[files]
+../common/src/types.sv
+../common/src/wishbone_classic.sv
+../common/src/wishbone_dev_classic.sv
+src/leds.sv
+

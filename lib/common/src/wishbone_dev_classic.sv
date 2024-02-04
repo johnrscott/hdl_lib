@@ -8,7 +8,7 @@
 /// requesting a read/write cycle.
 ///
 /// On the first rising clock edge where request is asserted,
-/// the device is free to respond to the request by readingt
+/// the device is free to respond to the request by reading/
 /// write_data or setting write_data, setting ack to indicate
 /// it has completed the request. Alternatively, the device
 /// can delay ack by any number of clock cycles. During this
@@ -58,11 +58,11 @@ module wishbone_dev_classic #(
 );
 
    assign request = wb.cyc_i && wb.stb_i && !wb.ack_o;
-
+   
    // Ensures ack_o is only high for one cycle, even if device
    // asserts ack for more than one cycle
    always_ff @(posedge wb.clk_i) begin: ack_control
-      if (wb.rst_i || wb.ack_0)
+      if (wb.rst_i || wb.ack_o)
 	wb.ack_o <= 0;
       else if (request && ack)
 	wb.ack_o <= 1;

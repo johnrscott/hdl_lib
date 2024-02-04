@@ -1,31 +1,43 @@
 import types::rgb_led_t;
   
 module leds(
-   output logic [3:0] green_leds,
-   output	      rgb_led_t [3:0] rgb_leds,
-   wishbone.device    wb
+   output logic [3:0]	   green_leds,
+   output		   rgb_led_t [3:0] rgb_leds,
+   wishbone_classic.device wb
 );
 
-   assign wb.stall_o = 0;
-   assign wb.err_o = 0;
-   assign wb.rty_o = 0;
-
-   logic [7:0] state;
+   logic update_leds;
+   logic [7:0] new_leds_state, state;
 
    assign green_leds = state[3:0];
    assign rgb_leds = state[7:4];
+
+   wishbone_dev_classic wb_dev(
+      .ack(1'b1),
+      .request(update_leds),
+      .write_data(new_led_state),
+      .wb
+   );
    
-   always_ff @(posedge wb.clk_i) begin: wishbone_response
-      if (wb.rst_i) begin
-	 wb.ack_o <= 0;
+   always_ff @(posedge wb.clk_i) begin: update_from_wishbone
+      if (wb.rst_i)
 	 state <= 0;
-      end
-      else if (wb.cyc_i && wb.stb_i) begin
-	 state <= wb.dat_i;
-	 wb.ack_o <= 1;
-      end
-      else
-	wb.ack_o <= 0;
+      else if (update_leds)
+	 state <= new_led_state;
    end
 
+`ifdef FORMAL
+
+   default clocking @(posedge wb.clk_i);
+   endclocking //
+
+   default disable iff (wb.rst_i);
+
+   respond_to_request: cover property (!update_leds[*10]
+      ##1 (update_leds && (new_led_state != state))
+      ##1 !update_leds[*10]);
+   
+
+`endif
+   
 endmodule
