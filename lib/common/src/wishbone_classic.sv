@@ -52,21 +52,29 @@ interface wishbone_classic #(
    assign response = ack_i || rty_i || err_i;
 
    sequence cycle(write_en, duration);
-      !cyc_o[*10] ##1 (cyc_o && write_en)[*duration] ##1 !cyc_o[*10]
+      !cyc_o[*10] ##1 (cyc_o && (we_o == write_en))[*duration] ##1 !cyc_o[*10]
    endsequence
+
+   sequence awaiting_response();
+      cyc_o and $stable(cyc_o) and !response;
+   endsequence // awaiting_response
+   
+   sequence request_stable();
+      $stable(cyc_o) and $stable(stb_o) and $stable(we_o) and $stable(dat_o);
+   endsequence // request_stable
    
    // 1. Wishbone B4 single read/write protocol
-
-   
    
    // Device eventually responds to every request
    response_follows_request: assert property (request |-> ##[1:$] response);
 
+   // Request signals are stable until response
+   request_stable_until_response: assert property (awaiting_response |-> request_stable);
+   
    // 2. Wishbone example traces
 
    two_cycle_single_write_cycle: cover property (cycle(1, 2));
-
-   five_cycle_single_read_cycle: cover property (cycle(1, 5));
+   five_cycle_single_read_cycle: cover property (cycle(0, 5));
  
 `endif
       
