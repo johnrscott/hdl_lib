@@ -18,7 +18,7 @@ read -formal types.sv
 read -formal wishbone_classic.sv
 read -formal wishbone_dev_classic.sv
 read -formal leds.sv
-prep -top leds
+prep -top leds_formal
 
 [files]
 ../common/src/types.sv

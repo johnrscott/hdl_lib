@@ -81,8 +81,6 @@ interface wishbone_classic #(
    assume_request_stable_until_response: assume property (awaiting_response |-> request_stable);   
 
    assume_cyc_high_until_response: assume property ($fell(cyc_o) |-> ack_i);
-
-   assert property (!ack_i);
    
  `endif
 

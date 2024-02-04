@@ -41,3 +41,13 @@ module leds(
 `endif
    
 endmodule
+
+module leds_formal(input clk_i, rst_i);
+
+   logic [3:0] green_leds;
+   rgb_led_t [3:0] rgb_leds;
+   
+   wishbone_classic wb(.clk_i, .rst_i);
+   leds leds(.*);
+   
+endmodule
