@@ -82,7 +82,7 @@ interface wishbone_classic #(
 
    assume_cyc_high_until_response: assume property ($fell(cyc_o) |-> ack_i);
 
-   assert property (0);
+   assert property (!ack_i);
    
  `endif
 
