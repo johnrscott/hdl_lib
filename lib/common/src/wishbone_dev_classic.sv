@@ -58,6 +58,7 @@ module wishbone_dev_classic #(
 );
 
    assign request = wb.cyc_i && wb.stb_i && !wb.ack_o;
+   assign write_data = wb.dat_i;
    
    // Ensures ack_o is only high for one cycle, even if device
    // asserts ack for more than one cycle
