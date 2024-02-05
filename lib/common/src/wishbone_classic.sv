@@ -37,12 +37,24 @@ interface wishbone_classic #(
    assign request = cyc_o && stb_o;
    assign response = ack_i || rty_i || err_i;
    
-   sequence async_ack_cycle(write_en);
-      cyc_o && ack_i && (we_o == write_en);
-   endsequence
-   
    sequence not_cycle_start();
       cyc_o && !($rose(cyc_o) || $past(ack_i));
+   endsequence
+
+   sequence start_from_idle();
+      !request ##1 request;
+   endsequence
+
+   /// This case can happen in Wishbone classic if the controller
+   /// continues to assert cyc_o and stb_o after the device has
+   /// acknowledged the transaction for one clock (thereby ending
+   /// the previous cycle)
+   sequence start_from_previous_cycle();
+      (request && ack_i) ##1 (request && !ack_i);
+   endsequence
+   
+   sequence cycle_start();
+      start_from_idle or start_from_previous_cycle;  
    endsequence
    
    sequence awaiting_response();
@@ -53,11 +65,28 @@ interface wishbone_classic #(
       $stable(cyc_o) and $stable(stb_o) and $stable(we_o) and $stable(dat_o);
    endsequence // request_stable
 
-   sequence cycle(write_en);
-      !cyc_o[*10] ##1 (cyc_o && (we_o == write_en))
-	##1 request_stable[*1:$] ##1 response ##1 !cyc_o[*10];
+   sequence wishbone_idle(duration);
+      !cyc_o[*duration]
    endsequence
 
+   /// An async-ack cycle is one where the device asserts ack_i combinationally
+   /// based on cyc_o and stb_o (so it happens in the same cycle), and the
+   /// cycle therefore terminates in one cycle.
+   sequence async_ack_cycle();
+      cycle_start and ack_i;
+   endsequence
+   
+   /// A sync-ack cycle is one where the device registers ack_i, so it comes
+   /// one clock after cyc_o and stb_o at the earliest. The device may insert
+   /// arbitrary wait states (meaning ack_i is delayed by arbitrary many cycles).
+   sequence sync_ack_cycle();
+      cycle_start ##[1:$] ack_i;
+   endsequence
+
+   sequence cycle();
+      async_ack_cycle or sync_ack_cycle;
+   endsequence
+   
    sequence cycle_ended();
       cyc_o ##1 !cyc_o
    endsequence
@@ -70,9 +99,7 @@ interface wishbone_classic #(
    
    // 2. Wishbone example traces
 
-   single_write_cycle: cover property (cycle(1, 2));
-   five_cycle_single_read_cycle: cover property (cycle(0, 5));
-   three_async_ack_cycles: cover property (!cyc_o[*10] ##1 async_ack_cycle(0)[*3] ##1 !cyc_o[*10]);
+   single_write_cycle: cover property (wishbone_idle(10) ##1 cycle ##1 wishbone_idle(10));
 
    // 3. Assumptions if only one or other side of the interface
    // is connected
