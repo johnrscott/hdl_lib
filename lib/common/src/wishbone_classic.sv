@@ -42,7 +42,7 @@ interface wishbone_classic #(
    endsequence
 
    sequence start_from_idle();
-      !request ##1 request;
+      !$past(request) && request;
    endsequence
 
    /// This case can happen in Wishbone classic if the controller
@@ -50,7 +50,7 @@ interface wishbone_classic #(
    /// acknowledged the transaction for one clock (thereby ending
    /// the previous cycle)
    sequence start_from_previous_cycle();
-      (request && ack_i) ##1 (request && !ack_i);
+      $past(request) && $past(ack_i) && request && !ack_i;
    endsequence
    
    sequence cycle_start();
@@ -84,7 +84,7 @@ interface wishbone_classic #(
    endsequence
 
    sequence cycle();
-      async_ack_cycle or sync_ack_cycle;
+      sync_ack_cycle or async_ack_cycle;
    endsequence
    
    sequence cycle_ended();
@@ -99,7 +99,7 @@ interface wishbone_classic #(
    
    // 2. Wishbone example traces
 
-   single_write_cycle: cover property (wishbone_idle(10) ##1 cycle ##1 wishbone_idle(10));
+   single_write_cycle: cover property (wishbone_idle(10) ##1 cycle);// ##10 wishbone_idle(10));
 
    // 3. Assumptions if only one or other side of the interface
    // is connected
