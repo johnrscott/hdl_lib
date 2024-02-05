@@ -53,20 +53,24 @@ interface wishbone_classic #(
       $stable(cyc_o) and $stable(stb_o) and $stable(we_o) and $stable(dat_o);
    endsequence // request_stable
 
-   sequence cycle(write_en, duration);
+   sequence cycle(write_en);
       !cyc_o[*10] ##1 (cyc_o && (we_o == write_en))
-	##1 request_stable[*duration] ##1 response ##1 !cyc_o[*10];
+	##1 request_stable[*1:$] ##1 response ##1 !cyc_o[*10];
    endsequence
 
+   sequence cycle_ended();
+      cyc_o ##1 !cyc_o
+   endsequence
+   
    // 1. Wishbone B4 single read/write protocol
    
    response_follows_request: assert property (request |-> ##[1:$] response);
    request_stable_until_response: assert property (awaiting_response |-> request_stable);
-   cyc_high_until_response: assert property ($fell(cyc_o) |-> ack_i);
+   cyc_high_until_response: assert property (cycle_ended |=> ack_i);
    
    // 2. Wishbone example traces
 
-   two_cycle_single_write_cycle: cover property (cycle(1, 2));
+   single_write_cycle: cover property (cycle(1, 2));
    five_cycle_single_read_cycle: cover property (cycle(0, 5));
    three_async_ack_cycles: cover property (!cyc_o[*10] ##1 async_ack_cycle(0)[*3] ##1 !cyc_o[*10]);
 
@@ -80,7 +84,7 @@ interface wishbone_classic #(
 
    assume_request_stable_until_response: assume property (awaiting_response |-> request_stable);   
 
-   assume_cyc_high_until_response: assume property ($fell(cyc_o) |-> ack_i);
+   assume_cyc_high_until_response: assume property (cycle_ended |=> ack_i);
    
  `endif
 

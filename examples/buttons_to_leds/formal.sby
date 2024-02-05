@@ -1,0 +1,34 @@
+[tasks]
+bounded with_depth
+induction with_depth
+cover with_depth
+
+[options]
+with_depth: depth 100
+bounded: mode bmc
+induction: mode prove
+cover: mode cover
+
+[engines]
+smtbmc
+
+[script]
+# The order here might be important
+read -formal types.sv  
+read -formal wishbone_classic.sv
+read -formal wishbone_ctrl_classic.sv
+read -formal wishbone_dev_classic.sv
+read -formal buttons.sv
+read -formal leds.sv 
+read -formal buttons_to_leds.sv
+prep -top buttons_to_leds
+
+[files]
+../../lib/common/src/types.sv
+../../lib/common/src/wishbone_classic.sv
+../../lib/common/src/wishbone_ctrl_classic.sv
+../../lib/common/src/wishbone_dev_classic.sv
+../../lib/buttons/src/buttons.sv
+../../lib/leds/src/leds.sv
+src/buttons_to_leds.sv
+
