@@ -99,7 +99,7 @@ interface wishbone_classic #(
    
    // 2. Wishbone example traces
 
-   single_write_cycle: cover property (wishbone_idle(10) ##1 cycle);// ##10 wishbone_idle(10));
+   single_write_cycle: cover property (wishbone_idle(10) ##1 cycle ##1 wishbone_idle(10));
 
    // 3. Assumptions if only one or other side of the interface
    // is connected
