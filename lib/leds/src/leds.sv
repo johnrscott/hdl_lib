@@ -1,5 +1,5 @@
 import types::rgb_led_t;
-  
+
 module leds(
    output logic [3:0]	   green_leds,
    output		   rgb_led_t [3:0] rgb_leds,
@@ -15,7 +15,7 @@ module leds(
    wishbone_dev_classic wb_dev(
       .ack(1'b1),
       .request(update_leds),
-      .write_data(new_led_state),
+      .write_data(new_leds_state),
       .wb
    );
    
@@ -23,7 +23,7 @@ module leds(
       if (wb.rst_i)
 	 state <= 0;
       else if (update_leds)
-	 state <= new_led_state;
+	 state <= new_leds_state;
    end
 
 `ifdef FORMAL
@@ -40,14 +40,14 @@ module leds(
    // 2. Provide examples of behaviour
      
    respond_to_request: cover property (!update_leds[*10]
-      ##1 (update_leds && (new_led_state != state))
+      ##1 (update_leds && (new_leds_state != state))
       ##1 !update_leds[*10]);
 
 `endif
    
 endmodule
 
-module leds_formal(input clk_i, rst_i);
+module leds_formal(input logic clk_i, rst_i);
 
    logic [3:0] green_leds;
    rgb_led_t [3:0] rgb_leds;
