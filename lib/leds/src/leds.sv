@@ -33,10 +33,15 @@ module leds(
 
    default disable iff (wb.rst_i);
 
+   // 1. Establish correct behaviour
+
+   correct_state_stored: assert property ((wb.cyc_i && wb.stb_i && !wb.ack_o) |=> (state == $past(wb.dat_i)));
+
+   // 2. Provide examples of behaviour
+     
    respond_to_request: cover property (!update_leds[*10]
       ##1 (update_leds && (new_led_state != state))
       ##1 !update_leds[*10]);
-   
 
 `endif
    
