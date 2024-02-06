@@ -5,17 +5,17 @@ interface wishbone_classic #(
 );
 
    // From perspective of controller
-   logic cyc_o, stb_o, we_o, ack_i, err_i, rty_i;
-   logic [DAT_WIDTH-1:0] dat_o, dat_i;
+   logic cyc_o_inner, stb_o_inner, we_o_inner, ack_i_inner, err_i_inner, rty_i_inner;
+   logic [DAT_WIDTH-1:0] dat_o_inner, dat_i_inner;
 
    modport controller(
-      output cyc_o, stb_o, we_o, dat_o,
-      input  clk_i, rst_i, ack_i, err_i, rty_i, dat_i
+      output .cyc_o(cyc_o_inner), .stb_o(stb_o_inner), .we_o(we_o_inner), .dat_o(dat_o_inner),
+      input  clk_i, rst_i, .ack_i(ack_i_inner), .err_i(err_i_inner), .rty_i(rty_i_inner), .dat_i(dat_i_inner)
    );
 
    modport device(
-      output .ack_o(ack_i), .err_o(err_i), .rty_o(rty_i), .dat_o(dat_i),
-      input clk_i, rst_i, .cyc_i(cyc_o), .stb_i(stb_o), .we_i(we_o), .dat_i(dat_o)
+      output .ack_o(ack_i_inner), .err_o(err_i_inner), .rty_o(rty_i_inner), .dat_o(dat_i_inner),
+      input clk_i, rst_i, .cyc_i(cyc_o_inner), .stb_i(stb_o_inner), .we_i(we_o_inner), .dat_i(dat_o_inner)
    );
 
 `ifdef FORMAL
