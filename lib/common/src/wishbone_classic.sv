@@ -120,7 +120,7 @@ interface wishbone_classic #(
    // and needs Wishbone-controller assumptions to be satisfied
    // on an input port
 
-   //assume_request_stable_until_response: assume property (awaiting_response |-> request_data_stable);   
+   assume_request_stable_until_response: assume property (awaiting_response |-> request_data_stable);   
 
    assume_cyc_high_until_response: assume property ((cyc && !ack) |=> $stable(request));
    
