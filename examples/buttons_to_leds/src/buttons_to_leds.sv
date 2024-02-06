@@ -7,7 +7,7 @@ module buttons_to_leds(
    output	      rgb_led_t [3:0] rgb_leds
 );
 
-   localparam DEBOUNCE_PERIOD = 5;//5_000_000;
+   localparam DEBOUNCE_PERIOD = 5_000_000;
    
    wishbone_classic wb(.clk_i, .rst_i);
    buttons #(.DEBOUNCE_PERIOD(DEBOUNCE_PERIOD)) btns(.buttons, .switches, .wb);
