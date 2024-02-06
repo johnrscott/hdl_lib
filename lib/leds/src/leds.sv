@@ -12,16 +12,12 @@ module leds(
    assign green_leds = state[3:0];
    assign rgb_leds = state[7:4];
 
-   // Issue somewhere round here. RTL schematic shows all the inputs/outputs
-   // for the wishbone interface are messed up, with inputs being routed
-   // to outputs and vice versa.
    wishbone_dev_classic wb_dev(
       .ack(1'b1),
       .request(update_leds),
       .write_data(new_leds_state),
       .wb
    );
-
    
    always_ff @(posedge wb.clk_i) begin: update_from_wishbone
       if (wb.rst_i)
