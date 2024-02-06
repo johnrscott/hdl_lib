@@ -4,7 +4,7 @@ interface wishbone_classic #(
    input logic clk_i, rst_i
 );
 
-   logic cyc, stb, we, ack, err, rty;
+   logic cyc = 0, stb = 0, we = 0, ack = 0, err = 0, rty = 0;
 
    /// Would be better to name them dat_o and dat_i, but due to a
    /// Vivado bug (I think) this doesn't synthesize properly. Key point

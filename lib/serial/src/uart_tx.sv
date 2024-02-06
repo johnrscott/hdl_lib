@@ -112,8 +112,17 @@ module uart_tx #(
    // If the device is not busy, then tx is high
    tx_default_high: assert property (!busy |-> uart_tx); 
 
+   // This is a synchronous wishbone device -- ack cannot occur
+   // immediately when cyc and stb rise, it occurs one cycle later
+   // at the earliest
+   sync_ack: assert property ($rose(wb.cyc_i && wb.stb_i) |-> !wb.ack_o);
+   
+   // Somewhat duplicates sequences in the main wishbone classic interface.
+   // Would be good to deduplicate.
+   logic request;
+   assign request = wb.cyc_i && wb.stb_i;
    sequence cycle_start();
-      !busy && wb.cyc_i && wb.stb_i;
+      $rose(request) or (request && $fell(wb.ack_o));
    endsequence
    
    // If the module is not busy/reset, asserting send causes the
