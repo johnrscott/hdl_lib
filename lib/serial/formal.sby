@@ -13,6 +13,7 @@ cover: mode cover
 smtbmc
 
 [script]
+read -define FAKE_WB_CONTROLLER
 read -formal uart_tx.sv
 read -formal tx_shift_reg.sv
 read -formal wishbone_classic.sv
