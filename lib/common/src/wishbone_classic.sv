@@ -4,18 +4,25 @@ interface wishbone_classic #(
    input logic clk_i, rst_i
 );
 
-   // From perspective of controller
-   logic cyc_o_inner, stb_o_inner, we_o_inner, ack_i_inner, err_i_inner, rty_i_inner;
-   logic [DAT_WIDTH-1:0] dat_o_inner, dat_i_inner;
+   logic cyc, stb, we, ack, err, rty;
+
+   // Named from the controller's perspective
+   logic [DAT_WIDTH-1:0] dat_o, dat_i;
 
    modport controller(
-      output .cyc_o(cyc_o_inner), .stb_o(stb_o_inner), .we_o(we_o_inner), .dat_o(dat_o_inner),
-      input  clk_i, rst_i, .ack_i(ack_i_inner), .err_i(err_i_inner), .rty_i(rty_i_inner), .dat_i(dat_i_inner)
+      output .cyc_o(cyc), .stb_o(stb), .we_o(we), dat_o,
+      input  clk_i, rst_i, .ack_i(ack), .err_i(err), .rty_i(rty), dat_i
    );
 
    modport device(
-      output .ack_o(ack_i_inner), .err_o(err_i_inner), .rty_o(rty_i_inner), .dat_o(dat_i_inner),
-      input clk_i, rst_i, .cyc_i(cyc_o_inner), .stb_i(stb_o_inner), .we_i(we_o_inner), .dat_i(dat_o_inner)
+      // For future reference: this is the bit which causes the synthesis to
+      // fail -- apparently something to do with using dat_i and dat_o as expression
+      // names. To run the synthesis, change to the xilinx/ folder, make a folder
+      // called build/ and change into it, then vivado -mode tcl and run run.tcl
+      // line by line. Use start_gui and show_schematic [get_nets] to look at
+      // the issues.
+      output .ack_o(ack), .err_o(err), .rty_o(rty), .dat_o(dat_i),
+      input clk_i, rst_i, .cyc_i(cyc), .stb_i(stb), .we_i(we), .dat_i(dat_o)
    );
 
 `ifdef FORMAL
