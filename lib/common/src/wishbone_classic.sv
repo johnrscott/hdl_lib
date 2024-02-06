@@ -4,7 +4,7 @@ interface wishbone_classic #(
    input logic clk_i, rst_i
 );
 
-   logic cyc = 0, stb = 0, we = 0, ack = 0, err = 0, rty = 0;
+   logic cyc, stb, we = 0, ack = 0, err = 0, rty = 0;
 
    /// Would be better to name them dat_o and dat_i, but due to a
    /// Vivado bug (I think) this doesn't synthesize properly. Key point
@@ -120,7 +120,7 @@ interface wishbone_classic #(
    // and needs Wishbone-controller assumptions to be satisfied
    // on an input port
 
-   assume_request_stable_until_response: assume property (awaiting_response |-> request_data_stable);   
+   //assume_request_stable_until_response: assume property (awaiting_response |-> request_data_stable);   
 
    assume_cyc_high_until_response: assume property ((cyc && !ack) |=> $stable(request));
    

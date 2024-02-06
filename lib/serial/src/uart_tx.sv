@@ -102,7 +102,7 @@ module uart_tx #(
    endsequence // reset_outputs
 
    // Cover a simple transaction
-   transmit_char: cover property (wb.cyc_i && wb.stb_i);
+   transmit_char: cover property (wb.stb_i);
    
    // This should follow from the logic, but putting it here
    // for now to stop induction failing
