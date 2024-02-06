@@ -49,7 +49,7 @@ interface wishbone_classic #(
    assign response = ack || rty || err;
    
    sequence not_cycle_start();
-      cyc && !($rose(cyc) || $past(ack));
+      cyc && !($rose(cyc) || $fell(response));
    endsequence
 
    sequence start_from_idle();
@@ -61,7 +61,7 @@ interface wishbone_classic #(
    /// acknowledged the transaction for one clock (thereby ending
    /// the previous cycle)
    sequence start_from_previous_cycle();
-      $past(request) && $past(ack) && request && !ack;
+     request && $stable(request) && $fell(response);
    endsequence
    
    sequence cycle_start();
@@ -69,11 +69,11 @@ interface wishbone_classic #(
    endsequence
    
    sequence awaiting_response();
-      request and not_cycle_start;
+      request and not_cycle_start and !response;
    endsequence // awaiting_response
    
    sequence request_data_stable();
-      $stable(stb) and $stable(we) and $stable(dat_out);
+      $stable(request) and $stable(we) and $stable(dat_out);
    endsequence // request_stable
 
    sequence wishbone_idle(duration);
@@ -84,14 +84,14 @@ interface wishbone_classic #(
    /// based on cyc and stb (so it happens in the same cycle), and the
    /// cycle therefore terminates in one cycle.
    sequence async_ack_cycle();
-      cycle_start and ack;
+      cycle_start and response;
    endsequence
    
    /// A sync-ack cycle is one where the device registers ack, so it comes
    /// one clock after cyc and stb at the earliest. The device may insert
    /// arbitrary wait states (meaning ack is delayed by arbitrary many cycles).
    sequence sync_ack_cycle();
-      cycle_start ##[1:$] ack;
+      cycle_start ##[1:$] response;
    endsequence
 
    sequence cycle();
@@ -105,8 +105,8 @@ interface wishbone_classic #(
    // 1. Wishbone B4 single read/write protocol
    
    response_follows_request: assert property (request |-> ##[1:$] response);
-   request_stable_until_response: assert property (awaiting_response |-> request_data_stable);
-   cyc_high_until_response: assert property ((cyc && !ack) |=> $stable(request));
+   request_stable_until_response: assert property (awaiting_response |=> request_data_stable);
+   cyc_high_until_response: assert property ((cyc && !response) |=> $stable(request));
    
    // 2. Wishbone example traces
 
@@ -120,9 +120,9 @@ interface wishbone_classic #(
    // and needs Wishbone-controller assumptions to be satisfied
    // on an input port
 
-   assume_request_stable_until_response: assume property (awaiting_response |-> request_data_stable);   
+   assume_request_stable_until_response: assume property (awaiting_response |=> request_data_stable);
 
-   assume_cyc_high_until_response: assume property ((cyc && !ack) |=> $stable(request));
+   assume_cyc_high_until_response: assume property ((cyc && !response) |=> $stable(request));
    
  `endif
 
