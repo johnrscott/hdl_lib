@@ -25,7 +25,7 @@ module uart_tx #(
    logic [31:0]	baud_counter = 0;
    logic [3:0] bit_counter = 0; 
 
-   logic	send, load, busy, shift, tx_done;
+   logic	send, load, busy = 0, shift, tx_done;
    tx_shift_reg tx_shift_reg(
       .clk(wb.clk_i),
       .rst(wb.rst_i),
@@ -101,6 +101,9 @@ module uart_tx #(
       uart_tx && !wb.ack_o;
    endsequence // reset_outputs
 
+   // Cover a simple transaction
+   transmit_char: cover property (send);
+   
    // This should follow from the logic, but putting it here
    // for now to stop induction failing
    baud_counter_valid: assume property (baud_counter < CLOCKS_PER_BIT);
