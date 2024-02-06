@@ -13,7 +13,7 @@ cover: mode cover
 smtbmc
 
 [script]
-# The order here might be important
+read -define DEBOUNCE_PERIOD=5
 read -formal types.sv  
 read -formal wishbone_classic.sv
 read -formal wishbone_ctrl_classic.sv
