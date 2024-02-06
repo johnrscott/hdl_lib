@@ -69,7 +69,7 @@ interface wishbone_classic #(
    endsequence
    
    sequence awaiting_response();
-      cyc and not_cycle_start;
+      request and not_cycle_start;
    endsequence // awaiting_response
    
    sequence request_data_stable();
