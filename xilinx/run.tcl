@@ -43,9 +43,9 @@ synth_ip [get_ips]
 export_ip_user_files -of_objects [get_ips] -no_script -sync -force -quiet
 
 # To elaborate design
-synth_design -rtl -top top -verilog_define MOD=$example
-start_gui
-show_schematic [get_nets]
+# synth_design -rtl -top top -verilog_define MOD=$example
+# start_gui
+# show_schematic [get_nets]
 
 synth_design -top top -verilog_define MOD=$example
 
