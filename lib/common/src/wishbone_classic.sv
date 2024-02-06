@@ -37,11 +37,11 @@ interface wishbone_classic #(
 
    // Convenience definitions for Wishbone protocol
    logic request, responded;
-   assign request = cyc_o && stb_o;
-   assign response = ack_i || rty_i || err_i;
+   assign request = cyc && stb;
+   assign response = ack || rty || err;
    
    sequence not_cycle_start();
-      cyc_o && !($rose(cyc_o) || $past(ack_i));
+      cyc && !($rose(cyc) || $past(ack));
    endsequence
 
    sequence start_from_idle();
@@ -49,11 +49,11 @@ interface wishbone_classic #(
    endsequence
 
    /// This case can happen in Wishbone classic if the controller
-   /// continues to assert cyc_o and stb_o after the device has
+   /// continues to assert cyc and stb after the device has
    /// acknowledged the transaction for one clock (thereby ending
    /// the previous cycle)
    sequence start_from_previous_cycle();
-      $past(request) && $past(ack_i) && request && !ack_i;
+      $past(request) && $past(ack) && request && !ack;
    endsequence
    
    sequence cycle_start();
@@ -61,29 +61,29 @@ interface wishbone_classic #(
    endsequence
    
    sequence awaiting_response();
-      cyc_o and not_cycle_start;
+      cyc and not_cycle_start;
    endsequence // awaiting_response
    
    sequence request_data_stable();
-      $stable(stb_o) and $stable(we_o) and $stable(dat_o);
+      $stable(stb) and $stable(we) and $stable(dat_out);
    endsequence // request_stable
 
    sequence wishbone_idle(duration);
-      !cyc_o[*duration]
+      !cyc[*duration]
    endsequence
 
-   /// An async-ack cycle is one where the device asserts ack_i combinationally
-   /// based on cyc_o and stb_o (so it happens in the same cycle), and the
+   /// An async-ack cycle is one where the device asserts ack combinationally
+   /// based on cyc and stb (so it happens in the same cycle), and the
    /// cycle therefore terminates in one cycle.
    sequence async_ack_cycle();
-      cycle_start and ack_i;
+      cycle_start and ack;
    endsequence
    
-   /// A sync-ack cycle is one where the device registers ack_i, so it comes
-   /// one clock after cyc_o and stb_o at the earliest. The device may insert
-   /// arbitrary wait states (meaning ack_i is delayed by arbitrary many cycles).
+   /// A sync-ack cycle is one where the device registers ack, so it comes
+   /// one clock after cyc and stb at the earliest. The device may insert
+   /// arbitrary wait states (meaning ack is delayed by arbitrary many cycles).
    sequence sync_ack_cycle();
-      cycle_start ##[1:$] ack_i;
+      cycle_start ##[1:$] ack;
    endsequence
 
    sequence cycle();
@@ -91,14 +91,14 @@ interface wishbone_classic #(
    endsequence
 
    sequence cycle_ended();
-      cyc_o ##1 !cyc_o
+      cyc ##1 !cyc
    endsequence
    
    // 1. Wishbone B4 single read/write protocol
    
    response_follows_request: assert property (request |-> ##[1:$] response);
    request_stable_until_response: assert property (awaiting_response |-> request_data_stable);
-   cyc_high_until_response: assert property ((cyc_o && !ack_i) |=> $stable(request));
+   cyc_high_until_response: assert property ((cyc && !ack) |=> $stable(request));
    
    // 2. Wishbone example traces
 
@@ -114,7 +114,7 @@ interface wishbone_classic #(
 
    assume_request_stable_until_response: assume property (awaiting_response |-> request_data_stable);   
 
-   assume_cyc_high_until_response: assume property ((cyc_o && !ack_i) |=> $stable(request));
+   assume_cyc_high_until_response: assume property ((cyc && !ack) |=> $stable(request));
    
  `endif
 
