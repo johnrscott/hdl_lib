@@ -28,6 +28,14 @@ interface wishbone_classic #(
       input clk_i, rst_i, .cyc_i(cyc), .stb_i(stb), .we_i(we), .dat_i(dat_out)
    );
 
+   function int bar();
+      return (3);
+   endfunction
+   
+   function int foo();
+      return(bar());
+   endfunction
+   
 `ifdef FORMAL
 
    default clocking @(posedge clk_i);
