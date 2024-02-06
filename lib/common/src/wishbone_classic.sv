@@ -6,12 +6,15 @@ interface wishbone_classic #(
 
    logic cyc, stb, we, ack, err, rty;
 
-   // Named from the controller's perspective
-   logic [DAT_WIDTH-1:0] dat_o, dat_i;
+   /// Would be better to name them dat_o and dat_i, but due to a
+   /// Vivado bug (I think) this doesn't synthesize properly. Key point
+   /// is not to have overlaps between modport expression names and internal
+   /// signal names
+   logic [DAT_WIDTH-1:0] dat_out, dat_in;
 
    modport controller(
-      output .cyc_o(cyc), .stb_o(stb), .we_o(we), dat_o,
-      input  clk_i, rst_i, .ack_i(ack), .err_i(err), .rty_i(rty), dat_i
+      output .cyc_o(cyc), .stb_o(stb), .we_o(we), .dat_o(dat_out),
+      input  clk_i, rst_i, .ack_i(ack), .err_i(err), .rty_i(rty), .dat_i(dat_in)
    );
 
    modport device(
@@ -21,8 +24,8 @@ interface wishbone_classic #(
       // called build/ and change into it, then vivado -mode tcl and run run.tcl
       // line by line. Use start_gui and show_schematic [get_nets] to look at
       // the issues.
-      output .ack_o(ack), .err_o(err), .rty_o(rty), .dat_o(dat_i),
-      input clk_i, rst_i, .cyc_i(cyc), .stb_i(stb), .we_i(we), .dat_i(dat_o)
+      output .ack_o(ack), .err_o(err), .rty_o(rty), .dat_o(dat_in),
+      input clk_i, rst_i, .cyc_i(cyc), .stb_i(stb), .we_i(we), .dat_i(dat_out)
    );
 
 `ifdef FORMAL
