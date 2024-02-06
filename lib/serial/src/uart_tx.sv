@@ -102,11 +102,11 @@ module uart_tx #(
    endsequence // reset_outputs
 
    // Cover a simple transaction
-   transmit_char: cover property (send);
+   transmit_char: cover property (wb.cyc_i && wb.stb_i);
    
    // This should follow from the logic, but putting it here
    // for now to stop induction failing
-   baud_counter_valid: assume property (baud_counter < CLOCKS_PER_BIT);
+   baud_counter_valid: assert property (baud_counter < CLOCKS_PER_BIT);
       
    reset: assert property (
       disable iff (0)
