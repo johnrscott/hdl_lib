@@ -25,7 +25,7 @@ module uart_tx #(
    logic [31:0]	baud_counter = 0;
    logic [3:0] bit_counter = 0; 
 
-   logic	send, load, busy = 0, shift, tx_done;
+   logic	send, request, load, busy = 0, shift, tx_done;
    tx_shift_reg tx_shift_reg(
       .clk(wb.clk_i),
       .rst(wb.rst_i),
@@ -38,10 +38,15 @@ module uart_tx #(
    // The tx_done signal can be used as the wishbone ACK response
    wishbone_dev_classic wb_dev(
       .ack(tx_done),
-      .request(send),
+      .request,
       .write_data,
+      .read_data(8'b0),
       .wb
    );
+
+   // This will convert the request Wishbone signal (held high) into
+   // a pulse
+   assign send = request && !busy;
    
    // Assert shift on the rising clock edge beginning the last baud
    // tick
@@ -119,11 +124,16 @@ module uart_tx #(
    // immediately when cyc and stb rise, it occurs one cycle later
    // at the earliest
    sync_ack: assert property ($rose(wb.cyc_i && wb.stb_i) |-> !wb.ack_o);
+
+   // tx_done should never be high unless the module is busy
+   tx_done_means_busy: assert property (tx_done |-> busy);
+
+   // The Wishbone transaction is not acknowledged until the transaction
+   // is complete
+   no_ack_until_complete: assert property (busy |-> request);
    
    // Somewhat duplicates sequences in the main wishbone classic interface.
    // Would be good to deduplicate.
-   logic request;
-   assign request = wb.cyc_i && wb.stb_i;
    sequence cycle_start();
       $rose(request) or (request && $fell(wb.ack_o));
    endsequence
@@ -154,9 +164,8 @@ module uart_tx #(
    
 endmodule
 
-module uart_tx_formal();
+module uart_tx_formal(input logic clk_i, rst_i, output uart_tx);
 
-   logic clk_i, rst_i, uart_tx;
    wishbone_classic wb(.*);
    uart_tx #(.CLOCKS_PER_BIT(4)) u0(.*);
 

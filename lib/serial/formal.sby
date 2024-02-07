@@ -4,7 +4,7 @@ induction with_depth
 cover with_depth
 
 [options]
-with_depth: depth 50
+with_depth: depth 75
 bounded: mode bmc
 induction: mode prove
 cover: mode cover

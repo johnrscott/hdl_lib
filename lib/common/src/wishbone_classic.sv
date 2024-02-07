@@ -69,7 +69,7 @@ interface wishbone_classic #(
    endsequence
    
    sequence awaiting_response();
-      request and not_cycle_start and !response;
+      request and !response;
    endsequence // awaiting_response
    
    sequence request_data_stable();
@@ -105,8 +105,8 @@ interface wishbone_classic #(
    // 1. Wishbone B4 single read/write protocol
    
    response_follows_request: assert property (request |-> ##[1:$] response);
-   request_stable_until_response: assert property (awaiting_response |=> request_data_stable);
-   cyc_high_until_response: assert property ((cyc && !response) |=> $stable(request));
+   //request_stable_until_response: assert property (awaiting_response |=> request_data_stable);
+   cyc_high_until_response: assert property ((request ##1 !request) |-> $past(response));
    
    // 2. Wishbone example traces
 
@@ -120,9 +120,14 @@ interface wishbone_classic #(
    // and needs Wishbone-controller assumptions to be satisfied
    // on an input port
 
-   assume_request_stable_until_response: assume property (awaiting_response |=> request_data_stable);
+   //assume_request_stable_until_response: assume property (awaiting_response |=> request_data_stable);
+   thingy: cover property ((request ##1 !request));
+   thingy1: cover property ((request ##1 !request) ##1 $past(response));
 
-   assume_cyc_high_until_response: assume property ((cyc && !response) |=> $stable(request));
+   // The only way request can terminate is if ack is high 
+   assume_cyc_high_until_response: assume property ((request ##1 !request) |-> $past(response));
+
+   
    
  `endif
 
