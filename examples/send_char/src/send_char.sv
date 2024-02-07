@@ -49,7 +49,7 @@ module send_char(
    
    // Push char data to UART via wishbone
    wishbone_ctrl_classic ctrl(
-      .write_data(uart_char),
+      .write_data(char_to_send),
       .write_en(1'b1),
       .start(send_char),
       .wb(wb_to_uart)
