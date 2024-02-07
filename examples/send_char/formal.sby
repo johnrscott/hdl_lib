@@ -1,0 +1,36 @@
+[tasks]
+bounded with_depth
+induction with_depth
+cover with_depth
+
+[options]
+with_depth: depth 100
+bounded: mode bmc
+induction: mode prove
+cover: mode cover
+
+[engines]
+smtbmc
+
+[script]
+read -define DEBOUNCE_PERIOD=5
+read -formal types.sv  
+read -formal wishbone_classic.sv
+read -formal wishbone_ctrl_classic.sv
+read -formal wishbone_dev_classic.sv
+read -formal buttons.sv
+read -formal uart_tx.sv
+read -formal tx_shift_reg.sv 
+read -formal send_char.sv
+prep -top send_char
+
+[files]
+../../lib/common/src/types.sv
+../../lib/common/src/wishbone_classic.sv
+../../lib/common/src/wishbone_ctrl_classic.sv
+../../lib/common/src/wishbone_dev_classic.sv
+../../lib/buttons/src/buttons.sv
+../../lib/serial/src/uart_tx.sv
+../../lib/serial/src/tx_shift_reg.sv
+src/send_char.sv
+
