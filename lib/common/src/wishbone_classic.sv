@@ -122,7 +122,7 @@ interface wishbone_classic #(
 
    //assume_request_stable_until_response: assume property (awaiting_response |=> request_data_stable);
    thingy: cover property ((request ##1 !request));
-   thingy1: cover property ((request ##1 !request) ##1 $past(response));
+   thingy1: cover property ((request ##1 !request) ##0 $past(response));
 
    // The only way request can terminate is if ack is high 
    assume_cyc_high_until_response: assume property ((request ##1 !request) |-> $past(response));
