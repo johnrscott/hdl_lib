@@ -1,8 +1,8 @@
 module fifo #(
    ADDR_WIDTH = 4
 )(
-   wishbone.device wb_i,
-   wishbone.controller wb_o
+   wishbone_classic.device wb_i,
+   wishbone_classic.controller wb_o
 );
 
    localparam DEPTH = (1 << ADDR_WIDTH);
@@ -11,34 +11,33 @@ module fifo #(
 
    logic [ADDR_WIDTH-1:0] read_addr, write_addr;
 
+   logic [7:0]		  push_data;
+   
    // Give count an extra bit to express DEPTH
    logic [ADDR_WIDTH:0]	  count = 0;
    
-   logic		  push, pop, full, empty, wishbone_dev_request,
-			  wishbone_ctrl_request, await_ack = 0;
+   logic		  push_request, pop, push, full, empty;
 
-   // Upstream wishbone controller makes request
-   assign wishbone_dev_request = wb_i.cyc_i && wb_i.stb_i;
-
-   // Wishbone controller request
-   assign wishbone_ctrl_request = wb_o.cyc_o && wb_o.stb_o;
+   // Is the buffer full or empty?
+   assign full = (count == DEPTH);
+   assign empty = (count == 0);
    
-   // Wishbone device stalls if the buffer is full
-   assign wb_i.stall_o = wishbone_dev_request && full;
+   assign push = push_request && !full;
    
-   // Wishbone transaction accepted if not full
-   assign push = wishbone_dev_request && !full;
+   wishbone_dev_classic dev(
+      .write_data(push_data),
+      .request(push_request),
+      .ack(push),
+      .wb(wb_i)
+   );
 
-   // Using the await_ack in the condition guarantees that the pop
-   // only happens once per transaction (guards against a device
-   // where ack is tied high).
-   assign pop = await_ack && wb_o.ack_i;
-
-   // Route read-data to the downstream data interface
-   assign wb_o.dat_o = buffer[read_addr];
-
-   // Always write downstream
-   assign wb_o.we_o = 1;
+   wishbone_ctrl_classic ctrl(
+      .ack(pop),
+      .write_data(buffer[read_addr]),
+      .write_en(1'b1),
+      .start(!empty),
+      .wb(wb_o)
+   );
    
    fifo_addr_gen #(.ADDR_WIDTH(ADDR_WIDTH)) write_addr_gen(
       .clk(wb_i.clk_i),
@@ -63,51 +62,13 @@ module fifo #(
 	count <= count - 1;
    end
    
-   // Is the buffer full or empty?
-   assign full = (count == DEPTH);
-   assign empty = (count == 0);
-
-   // Acknowledge lags push by one clock
-   always_ff @(posedge wb_i.clk_i) begin: wishbone_ack
-      if (wb_i.rst_i)
-	 wb_i.ack_o <= 0;
-      else if (push)
-	 wb_i.ack_o <= 1;
-      else
-	 wb_i.ack_o <= 0;
-   end
-
    always_ff @(posedge wb_i.clk_i) begin: push_to_buffer
       if (wb_i.rst_i)
 	buffer <= '{ default: '0 };
       else if (push)
 	buffer[write_addr] <= wb_i.dat_i;
    end
-
-   always_ff @(posedge wb_o.clk_i) begin: wishbone_send_data
-      if (wb_o.rst_i) begin
-	 await_ack <= 0;
-	 wb_o.cyc_o <= 0;
-	 wb_o.stb_o <= 0;
-      end
-      else if (!empty && !wb_o.cyc_o) begin
-	 wb_o.cyc_o <= 1;
-	 wb_o.stb_o <= 1;	 
-      end
-      else if (wishbone_ctrl_request && !wb_o.stall_i) begin
-	 wb_o.stb_o <= 0;
-	 // Check if device returns ack immediately. Otherwise,
-	 // set state to wait for ack.
-	 if (wb_o.ack_i)
-	   wb_o.cyc_o <= 0;
-	 else	   
-	   await_ack <= 1;	      
-      end
-      else if (wb_o.ack_i && await_ack) begin
-	 wb_o.cyc_o <= 0;
-	 await_ack <= 0;	 
-      end
-   end   
+	
 
 `ifdef FORMAL
 
