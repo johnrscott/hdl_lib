@@ -29,6 +29,10 @@ module wishbone_ctrl_classic #(
    wishbone_classic.controller wb
 );
 
+   initial begin
+      wb.stb_o = 0;
+   end
+   
    assign cyc = wb.cyc_o;
    assign ack = wb.ack_i;
    assign read_data = wb.dat_i;

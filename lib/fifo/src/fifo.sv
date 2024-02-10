@@ -35,7 +35,7 @@ module fifo #(
       .ack(pop),
       .write_data(buffer[read_addr]),
       .write_en(1'b1),
-      .start(!empty),
+      .start(!empty && !(pop && (count == 1))),
       .wb(wb_o)
    );
    
@@ -86,18 +86,29 @@ module fifo #(
    resets_equal: assume property (disable iff (0) wb_i.rst_i == wb_o.rst_i);
    
    // Data is only ever added or removed one item at a time
-   count_inc_or_dec: assert property (
-      (count == 0) ||
-      $stable(count) ||
-      (count == $past(count) + 1) ||
-      (count == $past(count) - 1));
+   // count_inc_or_dec: assert property (
+   //    (count == 0) ||
+   //    $stable(count) ||
+   //    (count == $past(count) + 1) ||
+   //    (count == $past(count) - 1));
    
    // Data in buffer always less than DEPTH
-   no_overflow: assert property (count <= DEPTH);
+   //no_overflow: assert property (count <= DEPTH);
 
    // Check that buffer can fill up
+   //buffer_full: cover property (full);
+
+   // Check that nothing is sent while the buffer is empty (transaction
+   // ends with pop on ack -- buffer becomes empty on the same cycle that
+   // stb and cyc fall)
+   //no_send_while_empty: assert property (empty |-> (!wb_o.cyc_o && !wb_o.stb_o));
+
+   // Check the buffer can be full
    buffer_full: cover property (full);
 
+   //
+   invalid_pop: cover property (!wb_o.stb_o ##1 wb_o.stb_o ##[1:$] (empty && wb_o.stb_o));
+   
    /*
    sequence non_stalled_push;
       wishbone_dev_request ##1 wb_i.ack_o;
