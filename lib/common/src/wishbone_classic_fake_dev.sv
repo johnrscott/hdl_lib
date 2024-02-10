@@ -16,6 +16,9 @@ module wishbone_classic_fake_dev(
    logic request, responded;
    assign request = wb.cyc_i && wb.stb_i;
    assign response = wb.ack_o || wb.rty_o || wb.err_o;
+
+   // No response unless a request is in progress
+   no_response_without_request: assume property (response |-> request);
    
 `endif
    
