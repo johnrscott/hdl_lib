@@ -16,14 +16,18 @@ smtbmc
 read -formal fifo_addr_gen.sv
 read -formal fifo.sv
 read -formal wishbone_classic.sv
+read -formal wishbone_classic_fake_dev.sv
+read -formal wishbone_classic_fake_ctrl.sv
 read -formal wishbone_dev_classic.sv
 read -formal wishbone_ctrl_classic.sv
-prep -top fifo
+prep -top fifo_formal
 
 [files]
 src/fifo_addr_gen.sv
 src/fifo.sv
 ../common/src/wishbone_classic.sv
+../common/src/wishbone_classic_fake_dev.sv
+../common/src/wishbone_classic_fake_ctrl.sv
 ../common/src/wishbone_dev_classic.sv
 ../common/src/wishbone_ctrl_classic.sv
 

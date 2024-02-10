@@ -12,6 +12,11 @@ module wishbone_classic_fake_dev(
 
    default disable iff (wb.rst_i);
 
+   // Convenience definitions for Wishbone protocol
+   logic request, responded;
+   assign request = wb.cyc_i && wb.stb_i;
+   assign response = wb.ack_o || wb.rty_o || wb.err_o;
+   
 `endif
    
 endmodule

@@ -152,3 +152,15 @@ module fifo #(
 `endif
    
 endmodule
+
+module fifo_formal(input logic clk_i, rst_i);
+
+   wishbone_classic wb_i(.clk_i, .rst_i);
+   wishbone_classic wb_o(.clk_i, .rst_i);
+
+   wishbone_classic_fake_ctrl ctrl(.wb(wb_i));
+   wishbone_classic_fake_dev dev(.wb(wb_o));
+
+   fifo dut(.wb_i, .wb_o);
+   
+endmodule

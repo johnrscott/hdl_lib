@@ -11,6 +11,11 @@ module wishbone_classic_fake_ctrl(
    endclocking //
 
    default disable iff (wb.rst_i);
+
+   // Convenience definitions for Wishbone protocol
+   logic request, responded;
+   assign request = wb.cyc_o && wb.stb_o;
+   assign response = wb.ack_i || wb.rty_i || wb.err_i;
    
    //assume_request_stable_until_response: assume property (awaiting_response |=> request_data_stable);
    //thingy: cover property ((request ##1 !request));
