@@ -2,7 +2,7 @@ create_project -in_memory -part xc7a35ticsg324-1L
 
 # Set the name of the example to build (this is the folder name in
 # examples/)
-set example send_char
+set example hello_world
 
 # Set the name of the board. This will pick out a *.xdc file with the
 # same name (currently only Arty A7 has been added, but similar boards

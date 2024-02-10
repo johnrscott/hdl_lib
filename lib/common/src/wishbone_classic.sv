@@ -114,30 +114,7 @@ interface wishbone_classic #(
 
    // 3. Assumptions if only one or other side of the interface
    // is connected
-   
- `ifdef FAKE_WB_CONTROLLER
-   // Use this if the top level module is a Wishbone device,
-   // and needs Wishbone-controller assumptions to be satisfied
-   // on an input port
-
-   //assume_request_stable_until_response: assume property (awaiting_response |=> request_data_stable);
-   //thingy: cover property ((request ##1 !request));
-   //thingy1: cover property ((request ##1 !request) ##0 $past(response));
-
-   // The only way request can terminate is if ack is high 
-   assume_cyc_high_until_response: assume property ((request ##1 !request) |-> $past(response));
-
-   
-   
- `endif
-
- `ifdef FAKE_WB_DEVICE
-   // Use this if the top level module is a Wishbone controller,
-   // and needs Wishbone-device assumptions to be satisfied
-   // on an input port.
-
- `endif
-
+      
    
 `endif
       

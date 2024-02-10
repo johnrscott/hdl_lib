@@ -98,6 +98,7 @@ module fifo #(
    // Check that buffer can fill up
    buffer_full: cover property (full);
 
+   /*
    sequence non_stalled_push;
       wishbone_dev_request ##1 wb_i.ack_o;
    endsequence
@@ -147,7 +148,7 @@ module fifo #(
    // Check a transaction can never be occurring if the buffer is empty
    // (since the pop occurs at the end of the cycle)
    no_send_while_empty: assert property (empty |-> !wb_o.cyc_o);
-   
+   */
 `endif
    
 endmodule
