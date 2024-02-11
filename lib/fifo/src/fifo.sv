@@ -16,13 +16,16 @@ module fifo #(
    // Give count an extra bit to express DEPTH
    logic [ADDR_WIDTH:0]	  count = 0;
    
-   logic		  push_request, pop, push, full, empty;
+   logic		  push_request, start_pop, pop, push, full, nearly_empty, empty;
 
    // Is the buffer full or empty?
    assign full = (count == DEPTH);
    assign empty = (count == 0);
+   assign nearly_empty = (count == 1);
    
    assign push = push_request && !full;
+
+   assign start_pop = !empty && !wb_o.cyc_o;
    
    wishbone_dev_classic dev(
       .write_data(push_data),
@@ -35,7 +38,7 @@ module fifo #(
       .ack(pop),
       .write_data(buffer[read_addr]),
       .write_en(1'b1),
-      .start(!empty && !(pop && (count == 1))),
+      .start(start_pop),
       .wb(wb_o)
    );
    
@@ -53,6 +56,13 @@ module fifo #(
       .addr(read_addr)
    );
 
+   // always_ff @(posedge wb_o.clk_i) begin: pop_if_needed
+   //    if (wb_o.rst_i || start_pop || wb_o.cyc_o)
+   // 	start_pop <= 0;
+   //    else if (!empty && !(pop && nearly_empty))
+   // 	start_pop <= 1;
+   // end
+   
    always_ff @(posedge wb_i.clk_i) begin: update_count
       if (wb_i.rst_i)
 	count <= 0;
@@ -107,7 +117,7 @@ module fifo #(
    buffer_full: cover property (full);
 
    //
-   invalid_pop: cover property (!wb_o.stb_o ##1 wb_o.stb_o ##[1:$] (empty && wb_o.stb_o));
+   invalid_pop: cover property (1 ##10 (empty && !wb_o.cyc_o) ##1 (empty && wb_o.cyc_o) ##10 1);
    
    /*
    sequence non_stalled_push;
