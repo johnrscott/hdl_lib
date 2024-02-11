@@ -114,6 +114,14 @@ module fifo #(
    // Check that buffer can fill up
    buffer_full: cover property (full);
 
+   // Check that the buffer can fill up and then empty
+   buffer_full_then_empty: cover property (full ##[1:$] empty);
+
+   // Check that a push/pop can occur simultaneously (check two in a row)
+   simultaneous_push_pop: cover property (push && pop ##[1:5] push && pop);
+
+   
+   
    // Check that nothing is sent while the buffer is empty (transaction
    // ends with pop on ack -- buffer becomes empty on the same cycle that
    // stb and cyc fall)
