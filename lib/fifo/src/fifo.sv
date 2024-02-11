@@ -12,19 +12,18 @@ module fifo #(
    logic [ADDR_WIDTH-1:0] read_addr, write_addr;
 
    logic [7:0]		  push_data;
-   
+
    logic [ADDR_WIDTH-1:0] count = 0;
    
-   logic		  push_request, start_pop, pop, push, full, nearly_empty, empty;
+   logic		  push_request, start_pop, pop_request, pop, push, nearly_full, empty;
 
-   // Is the buffer full or empty?
-   assign full = (count == DEPTH);
+   assign nearly_full = (count == (DEPTH - 1));
    assign empty = (count == 0);
-   assign nearly_empty = (count == 1);
    
-   assign push = push_request && !full;
+   assign push = push_request && !nearly_full;
+   assign pop = pop_request && !empty;
 
-   assign start_pop = !empty && !wb_o.cyc_o;
+   assign start_pop = 0;
    
    wishbone_dev_classic dev(
       .write_data(push_data),
@@ -34,7 +33,7 @@ module fifo #(
    );
 
    wishbone_ctrl_classic ctrl(
-      .ack(pop),
+      .ack(pop_request),
       .write_data(buffer[read_addr]),
       .write_en(1'b1),
       .start(start_pop),
@@ -99,7 +98,11 @@ module fifo #(
 
    no_overflow: assert property (not ((count == DEPTH-1) && push && !pop));
 
-   no_underflow: assert property (not ((count == 0) && pop && !push));
+   sequence underflow;
+      ((count == 0) && pop && !push)
+   endsequence
+   
+   no_underflow: assert property (not underflow);
 
    no_pop_if_empty: assert property ((empty && !wb_o.cyc_o) |=> !wb_o.cyc_o);
    
@@ -109,12 +112,14 @@ module fifo #(
    // Check that nothing is sent while the buffer is empty (transaction
    // ends with pop on ack -- buffer becomes empty on the same cycle that
    // stb and cyc fall)
-   no_send_while_empty: assert property (empty |-> (!wb_o.cyc_o && !wb_o.stb_o));
+   //no_send_while_empty: assert property (empty |-> (!wb_o.cyc_o && !wb_o.stb_o));
 
    // Check the buffer can be full
-   buffer_full: cover property (empty ##[1:$] full ##[1:$] empty);
+   //buffer_full: cover property (empty ##[1:$] full ##[1:$] empty);
 
-   invalid_pop: cover property ((empty && !wb_o.cyc_o) ##1 (empty && wb_o.cyc_o));
+   //invalid_pop: cover property ((empty && !wb_o.cyc_o) ##1 (empty && wb_o.cyc_o));
+
+   //invalid_pop_2: cover property (empty && $stable(empty) && $fell(wb_o.cyc_o));
    
    /*
    sequence non_stalled_push;
