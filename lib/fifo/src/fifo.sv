@@ -120,7 +120,16 @@ module fifo #(
    // Check that a push/pop can occur simultaneously (check two in a row)
    simultaneous_push_pop: cover property (push && pop ##[1:5] push && pop);
 
+   sequence push_value(value);
+      ((wb_i.dat_i == value) && $rose(wb_i.cyc_i)) ##[1:$] push;
+   endsequence
+
+   sequence pop_value(value);
+      ((wb_o.dat_o == value) && $rose(wb_i.cyc_i)) ##[1:$] pop;
+   endsequence
    
+   // Check a push/pop of real data
+   check_pop_after_push: cover property (push_value(4) ##[0:$] pop_value(4));
    
    // Check that nothing is sent while the buffer is empty (transaction
    // ends with pop on ack -- buffer becomes empty on the same cycle that
