@@ -121,7 +121,7 @@ module fifo #(
    simultaneous_push_pop: cover property (push && pop ##[1:5] push && pop);
 
    sequence push_value(value);
-      ((wb_i.dat_i == value) && $rose(wb_i.cyc_i)) ##[1:$] push;
+      ((wb_i.dat_i == value) && $rose(wb_i.cyc_i && wb_i.stb_i)) ##[1:$] push;
    endsequence
 
    sequence pop_value(value);
@@ -130,70 +130,39 @@ module fifo #(
    
    // Check a push/pop of real data
    check_pop_after_push: cover property (push_value(4) ##[0:$] pop_value(4));
+
+   // Check two pushes then two pops
+   check_pop2_after_push2: cover property (
+      push_value(2) ##[0:$] push_value(4) ##[0:$] pop_value(2) ##[0:$] pop_value(4)
+   );
+
+   // Makes no difference
+   initial begin
+      wb_o.cyc_o = 0;
+      wb_o.stb_o = 0;
+   end
+   
+   logic pop_wb_request;
+   assign pop_wishbone_request = wb_o.cyc_o && wb_o.stb_o;
+   
+   // Prove that no pop can be initiated if the buffer is empty
+   no_pop_request_while_empty: assert property (!pop_wishbone_request ##1 pop_wishbone_request |-> !$past(empty));
+
+   fails: assert property (!empty throughout pop_wishbone_request); 
    
    // Check that nothing is sent while the buffer is empty (transaction
    // ends with pop on ack -- buffer becomes empty on the same cycle that
    // stb and cyc fall)
    //no_send_while_empty: assert property (empty |-> (!wb_o.cyc_o && !wb_o.stb_o));
 
-   // Check the buffer can be full
-   //buffer_full: cover property (empty ##[1:$] full ##[1:$] empty);
-
-   //invalid_pop: cover property ((empty && !wb_o.cyc_o) ##1 (empty && wb_o.cyc_o));
-
-   //invalid_pop_2: cover property (empty && $stable(empty) && $fell(wb_o.cyc_o));
-   
-   /*
-   sequence non_stalled_push;
-      wishbone_dev_request ##1 wb_i.ack_o;
-   endsequence
-
-   sequence stalled_push;
-      wb_i.stall_o[*1:$] ##1 wishbone_dev_request ##1 wb_i.ack_o;
+   sequence badness;
+      empty && wb_o.cyc_o && wb_o.stb_o;
    endsequence
    
-   // Assume upstream wishbone controller holds cyc high for
-   // duration of wishbone cycle (until ack is returned)
-   cycle_duration: assume property (
-      wishbone_dev_request |-> wb_i.cyc_i s_until_with wb_i.ack_o);
-
-   // Assume upstream wishbone controll keeps stb low
-   // unless cyc is high (not required0
-   //stb_implies_cyc: assume property (wb_i.stb_i |-> wb_i.cyc_i);
-
-   // Assume that the downstream Wishbone device only raises
-   // stall if cyc and stb are set
-   downstream_stall_valid: assume property (
-      wb_o.stall_i |-> wb_o.cyc_o && wb_o.stb_o);
-
-   // Assume that the downstream returns ack the cycle after it
-   // has accepted the transaction
-   downstream_ack_follows_pop: assume property (
-      wb_o.cyc_o && wb_o.stb_o && !wb_o.stall_i |=> wb_o.ack_i);
-
-   // Assume that the downstream returns ack only if cyc is high,
-   // 
-   downstream_ack_valid: assume property (wb_o.ack_i |-> wb_o.cyc_o);
-
-   wishbone_simple_push: cover property (
-      !wb_i.cyc_i[*10]
-      ##1 non_stalled_push
-      ##1 !wb_i.cyc_i[*10]
-   );
-
-   wishbone_stalled_push: cover property (
-      !wb_i.cyc_i[*10]
-      ##1 stalled_push
-      ##1 !wb_i.cyc_i[*10]
-   );
-
-   // Check that await_ack is only ever set when cyc_o is set
-   await_ack_valid: assert property (await_ack |-> wb_o.cyc_o);
-
-   // Check a transaction can never be occurring if the buffer is empty
-   // (since the pop occurs at the end of the cycle)
-   no_send_while_empty: assert property (empty |-> !wb_o.cyc_o);
-   */
+   this_passes: cover property (badness);
+   but_this_fails: cover property (!wb_o.cyc_o ##[1:$] badness);
+   // test3: cover property (1 ##1 (empty && $rose(wb_o.cyc_o && wb_o.stb_o)));
+   
 `endif
    
 endmodule

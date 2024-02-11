@@ -1,22 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.4.0 (w)1999-2022 BSI
-[*] Sun Feb 11 22:11:36 2024
+[*] Sun Feb 11 22:41:25 2024
 [*]
-[dumpfile] "/home/john/Documents/git/hdl_lib/lib/fifo/formal_cover/engine_0/trace0.vcd"
-[dumpfile_mtime] "Sun Feb 11 21:55:47 2024"
-[dumpfile_size] 13662
+[dumpfile] "/home/john/Documents/git/hdl_lib/lib/fifo/formal_cover/engine_0/trace2.vcd"
+[dumpfile_mtime] "Sun Feb 11 22:35:11 2024"
+[dumpfile_size] 22181
 [savefile] "/home/john/Documents/git/hdl_lib/lib/fifo/wave_config.gtkw"
 [timestart] 0
-[size] 2560 1353
-[pos] -29 -29
-*-4.611698 15 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
-[treeopen] fifo_formal.
+[size] 2560 1440
+[pos] -1 -1
+*-4.438598 1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] fifo_formal.dut.
-[sst_width] 276
-[signals_width] 262
-[sst_expanded] 1
+[sst_width] 40
+[signals_width] 279
+[sst_expanded] 0
 [sst_vpaned_height] 778
-@29
+@28
 fifo_formal.clk_i
 @200
 -
@@ -54,7 +53,7 @@ fifo_formal.dut.wb_o_dat_o[7:0]
 fifo_formal.dut.pop
 @200
 -
--Internal Pointers
+-Internal Control
 @22
 [color] 7
 fifo_formal.dut.read_addr[3:0]
@@ -62,6 +61,11 @@ fifo_formal.dut.read_addr[3:0]
 fifo_formal.dut.write_addr[3:0]
 [color] 7
 fifo_formal.dut.count[4:0]
+@28
+[color] 7
+fifo_formal.dut.empty
+[color] 7
+fifo_formal.dut.full
 @200
 -
 -FIFO Buffer Data
