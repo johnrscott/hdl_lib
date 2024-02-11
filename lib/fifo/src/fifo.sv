@@ -13,17 +13,18 @@ module fifo #(
 
    logic [7:0]		  push_data;
 
-   logic [ADDR_WIDTH-1:0] count = 0;
+   // Extra bit to express DEPTH (for full check)
+   logic [ADDR_WIDTH:0] count = 0;
    
-   logic		  push_request, start_pop, pop_request, pop, push, nearly_full, empty;
+   logic		  push_request, start_pop, pop_request, pop, push, full, empty;
 
-   assign nearly_full = (count == (DEPTH - 1));
+   assign full = (count == DEPTH);
    assign empty = (count == 0);
    
-   assign push = push_request && !nearly_full;
+   assign push = push_request && !full;
    assign pop = pop_request && !empty;
 
-   assign start_pop = 0;
+   assign start_pop = !empty && !wb_o.cyc_o;;
    
    wishbone_dev_classic dev(
       .write_data(push_data),
@@ -87,19 +88,23 @@ module fifo #(
    resets_equal: assume property (disable iff (0) wb_i.rst_i == wb_o.rst_i);
    
    // Data is only ever added or removed one item at a time
-   // count_inc_or_dec: assert property (
-   //    (count == 0) ||
-   //    $stable(count) ||
-   //    (count == $past(count) + 1) ||
-   //    (count == $past(count) - 1));
+   count_inc_or_dec: assert property (
+      (count == 0) ||
+      $stable(count) ||
+      (count == $past(count) + 1) ||
+      (count == $past(count) - 1));
    
    // Data in buffer always less than DEPTH
-   count_in_range: assert property (count < DEPTH);
+   count_in_range: assert property (count <= DEPTH);
 
-   no_overflow: assert property (not ((count == DEPTH-1) && push && !pop));
+   sequence overflow;
+      (count == DEPTH) && push && !pop;
+   endsequence
+   
+   no_overflow: assert property (not overflow);
 
    sequence underflow;
-      ((count == 0) && pop && !push)
+      (count == 0) && pop && !push;
    endsequence
    
    no_underflow: assert property (not underflow);
@@ -107,7 +112,7 @@ module fifo #(
    no_pop_if_empty: assert property ((empty && !wb_o.cyc_o) |=> !wb_o.cyc_o);
    
    // Check that buffer can fill up
-   //buffer_full: cover property (full);
+   buffer_full: cover property (full);
 
    // Check that nothing is sent while the buffer is empty (transaction
    // ends with pop on ack -- buffer becomes empty on the same cycle that
