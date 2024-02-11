@@ -13,8 +13,7 @@ module fifo #(
 
    logic [7:0]		  push_data;
    
-   // Give count an extra bit to express DEPTH
-   logic [ADDR_WIDTH:0]	  count = 0;
+   logic [ADDR_WIDTH-1:0] count = 0;
    
    logic		  push_request, start_pop, pop, push, full, nearly_empty, empty;
 
@@ -55,13 +54,6 @@ module fifo #(
       .inc(pop),
       .addr(read_addr)
    );
-
-   // always_ff @(posedge wb_o.clk_i) begin: pop_if_needed
-   //    if (wb_o.rst_i || start_pop || wb_o.cyc_o)
-   // 	start_pop <= 0;
-   //    else if (!empty && !(pop && nearly_empty))
-   // 	start_pop <= 1;
-   // end
    
    always_ff @(posedge wb_i.clk_i) begin: update_count
       if (wb_i.rst_i)
@@ -103,21 +95,26 @@ module fifo #(
    //    (count == $past(count) - 1));
    
    // Data in buffer always less than DEPTH
-   //no_overflow: assert property (count <= DEPTH);
+   count_in_range: assert property (count < DEPTH);
 
+   no_overflow: assert property (not ((count == DEPTH-1) && push && !pop));
+
+   no_underflow: assert property (not ((count == 0) && pop && !push));
+
+   no_pop_if_empty: assert property ((empty && !wb_o.cyc_o) |=> !wb_o.cyc_o);
+   
    // Check that buffer can fill up
    //buffer_full: cover property (full);
 
    // Check that nothing is sent while the buffer is empty (transaction
    // ends with pop on ack -- buffer becomes empty on the same cycle that
    // stb and cyc fall)
-   //no_send_while_empty: assert property (empty |-> (!wb_o.cyc_o && !wb_o.stb_o));
+   no_send_while_empty: assert property (empty |-> (!wb_o.cyc_o && !wb_o.stb_o));
 
    // Check the buffer can be full
-   buffer_full: cover property (full);
+   buffer_full: cover property (empty ##[1:$] full ##[1:$] empty);
 
-   //
-   invalid_pop: cover property (1 ##10 (empty && !wb_o.cyc_o) ##1 (empty && wb_o.cyc_o) ##10 1);
+   invalid_pop: cover property ((empty && !wb_o.cyc_o) ##1 (empty && wb_o.cyc_o));
    
    /*
    sequence non_stalled_push;
